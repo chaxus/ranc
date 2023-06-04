@@ -1,23 +1,24 @@
-import { ITask } from './type'
+import type { Task } from './type'
+import { noop } from './utils'
 
 // 待任务队列
-const queue: ITask[] = []
+const queue: Task[] = []
 // 一个任务执行的最长时间
 const threshold: number = 5
 // 开始执行的任务队列
-const transitions = []
+const transitions: Array<() => void> = []
 let deadline: number = 0
 
-export const startTransition = cb => {
+export const startTransition = (cb: () => void): void => {
   // 将回调添加到 transitions 数组
   // 执行任务
   transitions.push(cb) && translate()
 }
 
-export const schedule = (callback: any): void => {
+export const schedule = (callback: Function): void => {
   // 将回调函数添加到数组中
   // 添加任务
-  queue.push({ callback } as any)
+  queue.push({ callback })
   // 开始执行任务
   startTransition(flush)
 }
@@ -47,11 +48,11 @@ const flush = (): void => {
   let job = peek(queue)
   // 
   while (job && !shouldYield()) {
-    const { callback } = job as any
-    job.callback = null
+    const { callback = noop } = job
+    job.callback = undefined
     const next = callback()
     if (next) {
-      job.callback = next as any
+      job.callback = next
     } else {
       queue.shift()
     }
@@ -64,6 +65,6 @@ export const shouldYield = (): boolean => {
   return getTime() >= deadline
 }
 
-export const getTime = () => performance.now()
+export const getTime = (): number => performance.now()
 
-const peek = (queue: ITask[]) => queue[0]
+const peek = (queue: Task[]) => queue[0]

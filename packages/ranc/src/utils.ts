@@ -1,6 +1,8 @@
+import type { Fiber, FiberProps } from "./type";
+
 export const isArr = Array.isArray
 
-export const initArray = (arr: unknown): Array<unknown> => (!arr ? [] : isArr(arr) ? arr : [arr]);
+export const initArray = (arr?: Fiber<FiberProps>[]): [] | Fiber<FiberProps>[] => (!arr ? [] : isArr(arr) ? arr : [arr]);
 
 export const isStr = (s: unknown): s is string => s instanceof String
 

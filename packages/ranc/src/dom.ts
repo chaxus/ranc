@@ -1,12 +1,13 @@
-import type { Attributes, DOM, FC, Fiber, FreElement } from './type'
+import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from './type'
+import { kidsRefer, refer } from './commit'
 import { TAG } from './reconcile'
 import { initArray, isArr, isNothing, isStr } from './utils'
 
 const defaultObj = {}
 
 const jointIter = <P extends Attributes>(
-    aProps: Partial<P>,
-    bProps: P,
+    aProps: Partial<P> & Record<string, any>,
+    bProps: P & Record<string, any>,
     callback: (name: string, a: any, b: any) => void
 ) => {
     aProps = aProps || defaultObj
@@ -15,7 +16,7 @@ const jointIter = <P extends Attributes>(
     Object.keys(bProps).forEach(k => !Object.hasOwnProperty.bind(aProps, k) && callback(k, undefined, bProps[k]))
 }
 
-export const updateElement = <P extends Attributes>(dom: DOM, aProps: Partial<P>, bProps: P): void => {
+export const updateElement = <P extends FiberProps>(dom: DOMElement, aProps: Partial<P>, bProps: Partial<P> & Record<string, any>): void => {
     jointIter(aProps, bProps, (name, a, b) => {
         if (a === b || name === 'children') {
         } else if (name === 'style' && !isStr(b)) {
@@ -48,24 +49,25 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
                     fiber.type
                 )
                 : isStr(fiber.type) && document.createElement(fiber.type)
-    dom && updateElement(dom, {}, fiber.props)
+    dom && updateElement(dom, {}, fiber.props || {})
     return dom
 }
 
 export const removeElement = (fiber: Fiber): void => {
     if (fiber.isComp) {
         fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
-        fiber.kids.forEach(removeElement)
+        fiber.kids && fiber.kids?.forEach(removeElement)
     } else {
-        fiber.parentNode.removeChild(fiber.node)
-        kidsRefer(fiber.kids)
-        refer(fiber.ref, null)
+        fiber.parentNode && fiber.parentNode.removeChild(fiber.node)
+        fiber.kids && kidsRefer(fiber.kids)
+        fiber.ref && refer(fiber.ref)
     }
 }
 
 
+
 // for jsx2
-export const h = (type, props: any, ...kids) => {
+export const h = (type: string, props: any, ...kids: Fiber<FiberProps>[]): any => {
     props = props || {}
     kids = flat(initArray(props.children || kids))
 
@@ -80,9 +82,9 @@ export const h = (type, props: any, ...kids) => {
     return createVnode(type, props, key, ref)
 }
 
-const some = (x: unknown) => x != null && x !== true && x !== false
+const some = (x: unknown): boolean => x != null && x !== true && x !== false
 
-const flat = (arr: any[], target = []) => {
+const flat = (arr: Fiber<FiberProps>[], target: Fiber<FiberProps>[] = []) => {
     arr.forEach(v => {
         isArr(v)
             ? flat(v, target)
@@ -91,21 +93,21 @@ const flat = (arr: any[], target = []) => {
     return target
 }
 
-export const createVnode = (type: string, props: any, key: string, ref: any) => ({
+export const createVnode = (type: string, props: any, key: string, ref: any): any => ({
     type,
     props,
     key,
     ref,
 })
 
-export const createText = (vnode: any) =>
-    ({ type: '#text', props: { nodeValue: vnode + '' } } as FreElement)
+export const createText = (vnode: RancNode): any =>
+    ({ type: '#text', props: { nodeValue: vnode + '' } })
 
-export function Fragment(props) {
+export function Fragment(props: Attributes): RancNode[] | undefined {
     return props.children
 }
 
-export function memo<T extends object>(fn: FC<T>, compare?: FC<T>['shouldUpdate']) {
+export function memo<T extends Attributes>(fn: FC<T>, compare?: FC<T>['shouldUpdate']): FC<T> {
     fn.memo = true
     fn.shouldUpdate = compare
     return fn

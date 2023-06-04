@@ -5,15 +5,15 @@ import type {
     Effect,
     EffectCallback,
     Fiber,
-    FreNode,
     HookTypes,
+    RancNode,
     Reducer,
     RefObject,
     SetStateAction,
 } from "./type"
 import { noop } from './utils'
 
-const EMPTY_ARR = []
+const EMPTY_ARR: [] = []
 
 let cursor = 0
 
@@ -29,7 +29,7 @@ export const useReducer = <S, A>(
     reducer?: Reducer<S, A>,
     initState?: S
 ): [S, Dispatch<A>] => {
-    const [hook, current]: [any, Fiber] = getHook<S>(cursor++)
+    const [hook, current]: [any, Fiber] = getHook(cursor++)
     if (hook.length === 0) {
         hook[0] = initState
         hook[1] = (value: A | Dispatch<A>) => {
@@ -61,14 +61,16 @@ const effectImpl = (
     if (isChanged(hook[1], deps)) {
         hook[0] = cb
         hook[1] = deps
-        current.hooks[key].push(hook)
+        if (current.hooks) {
+            current.hooks[key].push(hook)
+        }
     }
 }
 
-export const useMemo = (
-    cb: Function,
+export const useMemo = <S = Function>(
+    cb: () => S,
     deps: DependencyList = []
-): Function => {
+): S => {
     const hook = getHook(cursor++)[0]
     if (isChanged(hook[1], deps!)) {
         hook[1] = deps
@@ -100,7 +102,7 @@ export const getHook = (
 }
 
 export type ContextType<T> = {
-    ({ value, children }: { value: T, children: FreNode }): FreNode;
+    ({ value, children }: { value: T, children: Array<RancNode> }): Array<RancNode>;
     initialValue: T;
 }
 
@@ -122,7 +124,7 @@ export const createContext = <T>(initialValue: T): ContextType<T> => {
     return contextComponent;
 }
 
-export const useContext = <T>(contextType: ContextType<T>): T => {
+export const useContext = <T>(contextType: ContextType<T>): Effect | T => {
     let subscribersSet: Set<Function>
 
     const triggerUpdate = useReducer(undefined, null)[1]
@@ -132,17 +134,16 @@ export const useContext = <T>(contextType: ContextType<T>): T => {
     }, EMPTY_ARR);
 
     let contextFiber = getCurrentFiber().parent
-    while (contextFiber && contextFiber.type !== contextType) {
-        contextFiber = contextFiber.parent
-    }
+    // while (contextFiber && contextFiber.type !== contextType) {
+    //     contextFiber = contextFiber.parent
+    // }
+    const hooks = contextFiber?.hooks?.list
+    if (contextFiber && hooks) {
+        const [value, subscribers] = hooks;
 
-    if (contextFiber) {
-        const hooks = contextFiber.hooks.list as unknown as [[RefObject<T>], [Set<SubscriberCb>]]
-        const [[value], [subscribers]] = hooks;
+        // subscribersSet = subscribers.add(triggerUpdate)
 
-        subscribersSet = subscribers.add(triggerUpdate)
-
-        return value.current
+        return value
     } else {
         return contextType.initialValue
     }

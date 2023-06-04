@@ -1,9 +1,9 @@
-import type { Fiber, IRef } from './type';
 import { updateElement } from './dom'
 import { TAG, isFn } from './reconcile'
+import type { DOMElement, Fiber, FiberRef } from '@/type';
 
 
-export const commit = (fiber: Fiber):void => {
+export const commit = (fiber: Fiber): void => {
   if (!fiber) {
     return
   }
@@ -12,34 +12,34 @@ export const commit = (fiber: Fiber):void => {
     if (fiber.isComp && fiber.child) {
       fiber.child.action.op |= fiber.action.op
     } else {
-      fiber.parentNode.insertBefore(elm.node, before?.node)
+      fiber.parentNode && fiber.parentNode.insertBefore(elm.node, before?.node)
     }
   }
   if (op & TAG.UPDATE) {
     if (fiber.isComp && fiber.child) {
       fiber.child.action.op |= fiber.action.op
     } else {
-      updateElement(fiber.node, fiber.old.props || {}, fiber.props)
+      updateElement(fiber.node, fiber.old?.props || {}, fiber.props || {})
     }
   }
 
-  refer(fiber.ref, fiber.node)
+  fiber.ref && refer(fiber.ref, fiber.node)
 
   fiber.action = null
 
-  commit(fiber.child)
-  commit(fiber.sibling)
+  fiber.child && commit(fiber.child)
+  fiber.sibling && commit(fiber.sibling)
 }
 
-export const refer = (ref: IRef, dom?: HTMLElement): void => {
+export const refer = (ref: FiberRef, dom?: DOMElement): void => {
   if (ref)
-    isFn(ref) ? ref(dom) : ((ref as { current?: HTMLElement })!.current = dom)
+    isFn(ref) ? ref(dom) : ((ref as { current?: DOMElement })!.current = dom)
 }
 
-export const kidsRefer = (kids: any): void => {
+export const kidsRefer = (kids: Array<Fiber>): void => {
   kids.forEach(kid => {
     kid.kids && kidsRefer(kid.kids)
-    refer(kid.ref, undefined)
+    kid.ref && refer(kid.ref, undefined)
   })
 }
 

@@ -1,20 +1,16 @@
 import type {
-  Attributes,
-  FC,
-  FreElement,
-  FreNode,
-  HTMLElementEx,
+  DOMElement,
   Effect,
   Fiber,
+  FiberProps,
 } from "./type";
-import { createElement, createText } from "./dom";
-import { isArr } from './utils'
+import { createElement, createText, removeElement } from "./dom";
 import { resetCursor } from "./hook";
 import { schedule, shouldYield } from "./schedule";
-import { commit, removeElement } from "./commit";
+import { commit } from "./commit";
+import { initArray } from "./utils";
 
 let currentFiber: Fiber;
-let rootFiber = null;
 
 export const enum TAG {
   UPDATE = 1 << 1,
@@ -26,15 +22,19 @@ export const enum TAG {
   REPLACE = 1 << 7,
 }
 
-export const render = (vnode: FreElement, node: Node): void => {
-  rootFiber = {
+export const render = (fiber: Fiber, node: DOMElement): void => {
+  const rootFiber: Fiber = {
     node,
-    props: { children: vnode },
-  } as Fiber;
+    child: fiber,
+    dirty: false,
+    type: 'root',
+    isComp: false,
+    lane: TAG.UPDATE
+  };
   update(rootFiber);
 };
 
-export const update = (fiber?: Fiber) => {
+export const update = (fiber: Fiber): void => {
   if (!fiber.dirty) {
     // 如果需要更新，则标记为 dirty 
     fiber.dirty = true;
@@ -45,15 +45,15 @@ export const update = (fiber?: Fiber) => {
 const reconcile = (fiber?: Fiber): boolean => {
   // 如果有 fiber 且没到时间，fiber 等于
   while (fiber && !shouldYield()) fiber = capture(fiber);
-  if (fiber) return reconcile.bind(null, fiber);
-  return null;
+  if (fiber) return reconcile(fiber);
+  return false;
 };
 
-const memo = (fiber) => {
-  if ((fiber.type as FC).memo && fiber.old?.props) {
-    const scu = (fiber.type as FC).shouldUpdate || shouldUpdate;
+const memo = (fiber: Fiber) => {
+  if (fiber.memo && fiber.old?.props) {
+    const scu = fiber.shouldUpdate || shouldUpdate;
     // 当前组件是否需要更新，不需要的话返回兄弟节点
-    if (!scu(fiber.props, fiber.old.props)) {
+    if (!scu(fiber.props || {}, fiber.old.props)) {
       // fast-fix
       return getSibling(fiber);
     }
@@ -61,7 +61,7 @@ const memo = (fiber) => {
   return null;
 };
 
-const capture = (fiber: IFiber): IFiber | undefined => {
+const capture = (fiber: Fiber): Fiber | undefined => {
   // 是不是自定义的组件
   fiber.isComp = isFn(fiber.type);
   if (fiber.isComp) {
@@ -78,74 +78,77 @@ const capture = (fiber: IFiber): IFiber | undefined => {
   return sibling;
 };
 
-const getSibling = (fiber) => {
+const getSibling = (fiber?: Fiber): Fiber | undefined => {
   while (fiber) {
     bubble(fiber);
     if (fiber.dirty) {
       fiber.dirty = false;
       commit(fiber);
-      return null;
     }
     if (fiber.sibling) return fiber.sibling;
     fiber = fiber.parent;
   }
-  return null;
 };
 
-const bubble = (fiber) => {
+const bubble = (fiber: Fiber) => {
   if (fiber.isComp) {
     if (fiber.hooks) {
       // 同步执行 useLayout hooks 
       side(fiber.hooks.layout);
       // 异步执行 useEffect hooks
-      schedule(() => side(fiber.hooks.effect));
+      schedule(() => side(fiber.hooks?.effect));
     }
   }
 };
 
-const shouldUpdate = (a, b) => {
+const shouldUpdate = (a: Partial<FiberProps>, b: Partial<FiberProps>) => {
   for (const i in a) if (!(i in b)) return true;
   for (const i in b) if (a[i] !== b[i]) return true;
 };
 
-const updateHook = <P = Attributes>(fiber: IFiber): any => {
+const updateHook = (fiber: Fiber): void => {
   resetCursor();
   currentFiber = fiber;
-  const children = (fiber.type as FC<P>)(fiber.props);
-  reconcileChidren(fiber, simpleVnode(children));
+  if (fiber.type instanceof Function) {
+    const children = fiber.type(fiber.props || {});
+    reconcileChildren(fiber, simpleVnode(children));
+  }
 };
 
-const updateHost = (fiber: IFiber): void => {
+const updateHost = (fiber: Fiber): void => {
   fiber.parentNode = (getParentNode(fiber) as any) || {};
   if (!fiber.node) {
     if (fiber.type === "svg") fiber.lane |= TAG.SVG;
-    fiber.node = createElement(fiber) as HTMLElementEx;
+    const flag = createElement(fiber)
+    if (flag) {
+      fiber.node = flag
+    }
   }
-  reconcileChidren(fiber, fiber.props.children);
+  fiber.props?.children && reconcileChildren(fiber, fiber.props.children);
 };
 
 const simpleVnode = (type: any) =>
   isStr(type) ? createText(type as string) : type;
 
-const getParentNode = (fiber: IFiber): HTMLElement | undefined => {
-  while ((fiber = fiber.parent)) {
+const getParentNode = (fiber: Fiber): DOMElement | undefined => {
+  while (fiber.parent && (fiber = fiber.parent)) {
     if (!fiber.isComp) return fiber.node;
   }
 };
 
-const reconcileChidren = (fiber: any, children: FreNode): void => {
+const reconcileChildren = (fiber: Fiber, children: Array<Fiber>): void => {
   const aCh = fiber.kids || [],
-    bCh = (fiber.kids = arrayfy(children) as any);
+    bCh = (fiber.kids = initArray(children))
   const actions = diff(aCh, bCh);
 
-  for (let i = 0, prev = null, len = bCh.length; i < len; i++) {
+  for (let i = 0, prev: Fiber | undefined = undefined, len = bCh.length; i < len; i++) {
     const child = bCh[i];
     child.action = actions[i];
     if (fiber.lane & TAG.SVG) {
       child.lane |= TAG.SVG;
     }
     child.parent = fiber;
-    if (i > 0) {
+    if (i > 0 && prev) {
       // 构建 fiber 链表
       prev.sibling = child;
     } else {
@@ -156,7 +159,7 @@ const reconcileChidren = (fiber: any, children: FreNode): void => {
   }
 };
 
-function clone(a, b) {
+function clone(a: Fiber, b: Fiber) {
   b.hooks = a.hooks;
   b.ref = a.ref;
   b.node = a.node; // 临时修复
@@ -164,25 +167,30 @@ function clone(a, b) {
   b.old = a;
 }
 
-export const arrayfy = (arr) => (!arr ? [] : isArr(arr) ? arr : [arr]);
+interface Action {
+  op: TAG,
+  elm?: Fiber,
+  before?: Fiber
+}
 
-const side = (effects: IEffect[]): void => {
-  // 执行卸载的操作
-  effects.forEach((e) => e[2] && e[2]());
-  // 执行挂载的操作，同时返回卸载的操作
-  effects.forEach((e) => (e[2] = e[0]()));
-  effects.length = 0;
+const side = (effects?: Effect[]): void => {
+  if (effects) {
+    // 执行卸载的操作
+    effects.forEach((e) => e[2] && e[2]());
+    // 执行挂载的操作，同时返回卸载的操作
+    effects.forEach((e) => (e[2] = e[0]()));
+    effects.length = 0;
+  }
 };
 // a 是原来的数组
 // b 是新的数组
 // 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
-const diff = function (a, b) {
-  let actions = [],
-    aIdx = {},
-    bIdx = {},
-    key = (v) => v.key + v.type,
-    i,
-    j;
+const diff = function (a: Fiber<FiberProps>[] | [], b: Fiber<FiberProps>[] | []) {
+  const actions: Array<Action> = [],
+    aIdx:Record<string,number> = {},
+    bIdx:Record<string,number> = {},
+    key = (v: Fiber) => v.key || '' + v.type
+  let i, j;
   // 配置 a 的映射 key + type，映射到 index
   for (i = 0; i < a.length; i++) {
     aIdx[key(a[i])] = i;
@@ -195,7 +203,7 @@ const diff = function (a, b) {
   for (i = j = 0; i !== a.length || j !== b.length;) {
     const aElm = a[i],
       bElm = b[j];
-    if (aElm === null) {
+    if (aElm == null) {
       i++;
       // 如果 j 大于 b 数组
       // 如果 b 元素上没有元素了，那说明此元素被删除，移除 a 元素
@@ -227,7 +235,7 @@ const diff = function (a, b) {
       } else {
         clone(a[wantedElmInOld], bElm);
         actions.push({ op: TAG.MOVE, elm: a[wantedElmInOld], before: a[i] });
-        a[wantedElmInOld] = null;
+        delete a[wantedElmInOld];
         j++;
       }
     }
