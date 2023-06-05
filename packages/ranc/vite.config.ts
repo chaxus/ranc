@@ -8,12 +8,18 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
+  esbuild: {
+    jsxFactory: 'h',
+    jsxFragment: 'Fragment',
+    target: 'es2020',
+    format: 'esm'
+  },
   build: {
     minify: 'terser',
-    sourcemap: true, 
+    sourcemap: true,
     rollupOptions: {
       inlineDynamicImports: true,
-      external: ['node:fs','fs'],
+      external: ['node:fs', 'fs'],
     },
     lib: {
       entry: './index.ts',

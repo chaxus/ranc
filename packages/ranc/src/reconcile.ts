@@ -1,8 +1,13 @@
+import {
+  TAG
+} from "./type";
 import type {
   DOMElement,
   Effect,
   Fiber,
+  FiberAction,
   FiberProps,
+  FC
 } from "./type";
 import { createElement, createText, removeElement } from "./dom";
 import { resetCursor } from "./hook";
@@ -12,31 +17,24 @@ import { initArray } from "./utils";
 
 let currentFiber: Fiber;
 
-export const enum TAG {
-  UPDATE = 1 << 1,
-  INSERT = 1 << 2,
-  REMOVE = 1 << 3,
-  SVG = 1 << 4,
-  DIRTY = 1 << 5,
-  MOVE = 1 << 6,
-  REPLACE = 1 << 7,
-}
 
-export const render = (fiber: Fiber, node: DOMElement): void => {
-  const rootFiber: Fiber = {
-    node,
-    child: fiber,
-    dirty: false,
-    type: 'root',
-    isComp: false,
-    lane: TAG.UPDATE
-  };
-  update(rootFiber);
+export const render = (fiber: Fiber, node: DOMElement | null): void => {
+  if (node) {
+    const rootFiber: Fiber = {
+      node,
+      child: fiber,
+      dirty: false,
+      type: 'root',
+      isComp: false,
+      lane: TAG.UPDATE
+    };
+    update(rootFiber);
+  }
 };
 
 export const update = (fiber: Fiber): void => {
   if (!fiber.dirty) {
-    // 如果需要更新，则标记为 dirty 
+    // 标记为 dirty 表示更新过了
     fiber.dirty = true;
     schedule(() => reconcile(fiber));
   }
@@ -111,14 +109,13 @@ const updateHook = (fiber: Fiber): void => {
   currentFiber = fiber;
   if (fiber.type instanceof Function) {
     const children = fiber.type(fiber.props || {});
-    reconcileChildren(fiber, simpleVnode(children));
+    fiber.props?.children && reconcileChildren(fiber, fiber.props.children);
   }
 };
 
 const updateHost = (fiber: Fiber): void => {
-  fiber.parentNode = (getParentNode(fiber) as any) || {};
+  fiber.parentNode = getParentNode(fiber);
   if (!fiber.node) {
-    if (fiber.type === "svg") fiber.lane |= TAG.SVG;
     const flag = createElement(fiber)
     if (flag) {
       fiber.node = flag
@@ -127,8 +124,8 @@ const updateHost = (fiber: Fiber): void => {
   fiber.props?.children && reconcileChildren(fiber, fiber.props.children);
 };
 
-const simpleVnode = (type: any) =>
-  isStr(type) ? createText(type as string) : type;
+const simpleVnode = (type: string | FC) =>
+  isStr(type) ? createText(type) : type;
 
 const getParentNode = (fiber: Fiber): DOMElement | undefined => {
   while (fiber.parent && (fiber = fiber.parent)) {
@@ -167,12 +164,6 @@ function clone(a: Fiber, b: Fiber) {
   b.old = a;
 }
 
-interface Action {
-  op: TAG,
-  elm?: Fiber,
-  before?: Fiber
-}
-
 const side = (effects?: Effect[]): void => {
   if (effects) {
     // 执行卸载的操作
@@ -186,9 +177,9 @@ const side = (effects?: Effect[]): void => {
 // b 是新的数组
 // 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
 const diff = function (a: Fiber<FiberProps>[] | [], b: Fiber<FiberProps>[] | []) {
-  const actions: Array<Action> = [],
-    aIdx:Record<string,number> = {},
-    bIdx:Record<string,number> = {},
+  const actions: Array<FiberAction> = [],
+    aIdx: Record<string, number> = {},
+    bIdx: Record<string, number> = {},
     key = (v: Fiber) => v.key || '' + v.type
   let i, j;
   // 配置 a 的映射 key + type，映射到 index

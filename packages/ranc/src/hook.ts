@@ -9,9 +9,8 @@ import type {
     RancNode,
     Reducer,
     RefObject,
-    SetStateAction,
+    SetStateAction
 } from "./type"
-import { noop } from './utils'
 
 const EMPTY_ARR: [] = []
 
@@ -29,12 +28,14 @@ export const useReducer = <S, A>(
     reducer?: Reducer<S, A>,
     initState?: S
 ): [S, Dispatch<A>] => {
+    // 获取当前 fiber 节点上的 hook list 中 cursor 项
+    // 如果没有的话就创建一个空
     const [hook, current]: [any, Fiber] = getHook(cursor++)
     if (hook.length === 0) {
         hook[0] = initState
         hook[1] = (value: A | Dispatch<A>) => {
             hook[0] = reducer
-                ? reducer(hook[0], value as any)
+                ? reducer(hook[0], value)
                 : isFn(value)
                     ? value(hook[0])
                     : value
@@ -57,7 +58,7 @@ const effectImpl = (
     deps: DependencyList,
     key: HookTypes
 ): void => {
-    const [hook, current] = getHook(cursor++)
+    const [hook, current]: [any, Fiber] = getHook(cursor++)
     if (isChanged(hook[1], deps)) {
         hook[0] = cb
         hook[1] = deps
@@ -71,8 +72,8 @@ export const useMemo = <S = Function>(
     cb: () => S,
     deps: DependencyList = []
 ): S => {
-    const hook = getHook(cursor++)[0]
-    if (isChanged(hook[1], deps!)) {
+    const hook:any = getHook(cursor++)[0]
+    if (isChanged(hook[1], deps)) {
         hook[1] = deps
         return (hook[0] = cb())
     }
@@ -92,11 +93,11 @@ export const useRef = <T>(current: T): RefObject<T> => {
 
 export const getHook = (
     cursor: number
-): [Effect, Fiber] => {
+): [Effect | [], Fiber] => {
     const current: Fiber = getCurrentFiber()
     const hooks = current.hooks || (current.hooks = { list: [], effect: [], layout: [] })
     if (cursor >= hooks.list.length) {
-        hooks.list.push([noop, []])
+        hooks.list.push([])
     }
     return [hooks.list[cursor], current]
 }
@@ -133,7 +134,7 @@ export const useContext = <T>(contextType: ContextType<T>): Effect | T => {
         return () => subscribersSet && subscribersSet.delete(triggerUpdate)
     }, EMPTY_ARR);
 
-    let contextFiber = getCurrentFiber().parent
+    const contextFiber = getCurrentFiber().parent
     // while (contextFiber && contextFiber.type !== contextType) {
     //     contextFiber = contextFiber.parent
     // }

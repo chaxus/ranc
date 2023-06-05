@@ -1,6 +1,6 @@
+import { TAG } from './type';
 import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from './type'
 import { kidsRefer, refer } from './commit'
-import { TAG } from './reconcile'
 import { initArray, isArr, isNothing, isStr } from './utils'
 
 const defaultObj = {}
@@ -15,7 +15,10 @@ const jointIter = <P extends Attributes>(
     Object.keys(aProps).forEach(k => callback(k, aProps[k], bProps[k]))
     Object.keys(bProps).forEach(k => !Object.hasOwnProperty.bind(aProps, k) && callback(k, undefined, bProps[k]))
 }
-
+/**
+ * @description: 更新元素
+ * @param {*} P
+ */
 export const updateElement = <P extends FiberProps>(dom: DOMElement, aProps: Partial<P>, bProps: Partial<P> & Record<string, any>): void => {
     jointIter(aProps, bProps, (name, a, b) => {
         if (a === b || name === 'children') {
@@ -38,8 +41,12 @@ export const updateElement = <P extends FiberProps>(dom: DOMElement, aProps: Par
         }
     })
 }
-
+/**
+ * @description: 创建元素
+ * @param {Fiber} fiber
+ */
 export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | false => {
+    if (fiber.type === "svg") fiber.lane |= TAG.SVG;
     const dom =
         fiber.type === '#text'
             ? document.createTextNode('')
@@ -52,7 +59,10 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
     dom && updateElement(dom, {}, fiber.props || {})
     return dom
 }
-
+/**
+ * @description: 删除元素
+ * @param {Fiber} fiber
+ */
 export const removeElement = (fiber: Fiber): void => {
     if (fiber.isComp) {
         fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
@@ -62,6 +72,25 @@ export const removeElement = (fiber: Fiber): void => {
         fiber.kids && kidsRefer(fiber.kids)
         fiber.ref && refer(fiber.ref)
     }
+}
+/**
+ * @description: 插入元素
+ * @param {Fiber} fiber
+ * @return {*}
+ */
+export const insertBeforeElement = (fiber: Fiber): void => {
+    const { before, elm } = fiber.action || {}
+    fiber.parentNode && fiber.parentNode.insertBefore(elm.node, before?.node)
+}
+
+export function Fragment(props: Attributes): RancNode[] | undefined {
+    return props.children
+}
+
+export function memo<T extends Attributes>(fn: FC<T>, compare?: FC<T>['shouldUpdate']): FC<T> {
+    fn.memo = true
+    fn.shouldUpdate = compare
+    return fn
 }
 
 
@@ -100,16 +129,6 @@ export const createVnode = (type: string, props: any, key: string, ref: any): an
     ref,
 })
 
+
 export const createText = (vnode: RancNode): any =>
     ({ type: '#text', props: { nodeValue: vnode + '' } })
-
-export function Fragment(props: Attributes): RancNode[] | undefined {
-    return props.children
-}
-
-export function memo<T extends Attributes>(fn: FC<T>, compare?: FC<T>['shouldUpdate']): FC<T> {
-    fn.memo = true
-    fn.shouldUpdate = compare
-    return fn
-}
-
