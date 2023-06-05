@@ -1,7 +1,7 @@
-import { TAG } from './type';
-import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from './type'
-import { kidsRefer, refer } from './commit'
-import { initArray, isArr, isNothing, isStr } from './utils'
+import { TAG } from '@/type';
+import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/type'
+import { kidsRefer, refer } from '@/commit'
+import { isNothing, isStr } from '@/utils'
 
 const defaultObj = {}
 
@@ -83,52 +83,7 @@ export const insertBeforeElement = (fiber: Fiber): void => {
     fiber.parentNode && fiber.parentNode.insertBefore(elm.node, before?.node)
 }
 
-export function Fragment(props: Attributes): RancNode[] | undefined {
-    return props.children
-}
-
-export function memo<T extends Attributes>(fn: FC<T>, compare?: FC<T>['shouldUpdate']): FC<T> {
-    fn.memo = true
-    fn.shouldUpdate = compare
-    return fn
-}
 
 
 
-// for jsx2
-export const h = (type: string, props: any, ...kids: Fiber<FiberProps>[]): any => {
-    props = props || {}
-    kids = flat(initArray(props.children || kids))
 
-    if (kids.length) props.children = kids.length === 1 ? kids[0] : kids
-
-    const key = props.key || null
-    const ref = props.ref || null
-
-    if (key) props.key = undefined
-    if (ref) props.ref = undefined
-
-    return createVnode(type, props, key, ref)
-}
-
-const some = (x: unknown): boolean => x != null && x !== true && x !== false
-
-const flat = (arr: Fiber<FiberProps>[], target: Fiber<FiberProps>[] = []) => {
-    arr.forEach(v => {
-        isArr(v)
-            ? flat(v, target)
-            : some(v) && target.push(isStr(v) ? createText(v) : v)
-    })
-    return target
-}
-
-export const createVnode = (type: string, props: any, key: string, ref: any): any => ({
-    type,
-    props,
-    key,
-    ref,
-})
-
-
-export const createText = (vnode: RancNode): any =>
-    ({ type: '#text', props: { nodeValue: vnode + '' } })

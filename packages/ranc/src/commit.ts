@@ -1,8 +1,7 @@
-import { insertBeforeElement, updateElement } from './dom'
-import { isFn } from './reconcile'
+import { insertBeforeElement, updateElement } from '@/dom'
+import { isFn } from '@/reconcile'
 import { TAG } from '@/type';
 import type { DOMElement, Fiber, FiberRef } from '@/type';
-
 
 export const commit = (fiber: Fiber): void => {
   if (!fiber) {

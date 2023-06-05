@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
-    "demo": "vite",
+    "dev": "vite",
     "prepublish": "npm run build"
   },
   "keywords": [],

@@ -17,6 +17,7 @@
     "baseUrl": ".",
     "experimentalDecorators": true,
     "jsx": "react",
+    // 自定义tsx工厂函数
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "paths": {
