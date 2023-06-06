@@ -3,7 +3,7 @@ import type { Attributes, RancNode } from "@/type"
 
 // TODO: props type 
 // 创建虚拟 DOM
-export const createVirtualDom = (type: string, props: any, ...children: RancNode[]):RancNode => {
+export const h = (type: string, props: any, ...children: RancNode[]):RancNode => {
     children = flat(initArray(props.children || children || []))
     const key = props.key || null
     const ref = props.ref || null
