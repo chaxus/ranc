@@ -1,13 +1,6 @@
-interface SignalValue {
-  execute: any
-  deps: any
-}
 
-interface Subscriptions {
-  execute: any
-}
+const context: Function[] = []
 
-const context: SignalValue[] = []
 /**
  * @description: 仅提供 value 时，（默认）是响应式的。
  * 在 options 设置 equals 为 false 时不管何时都是响应式。
@@ -18,25 +11,25 @@ export const createSignal = <T = unknown>(
   value?: T,
   options?: { equals?: boolean | ((prev: T | undefined, next: T) => boolean) },
 ): [() => T | undefined, (newValue: T) => void] => {
-  const subscriptions = new Set<Subscriptions>()
   const signal = {
     value,
+    // 订阅者
+    subscribers: new Set<Function>(),
     comparator: options?.equals,
   }
   const getter = () => {
-    const running = context.pop()
+    // 订阅
+    const running = context[context.length - 1]
     if (running) {
-      subscriptions.add({
-        execute: running.execute,
-      })
-      running.deps.add(subscriptions)
+      signal.subscribers.add(running)
     }
     return signal.value
   }
   const updateSignal = (newValue: T) => {
-    signal.value = newValue
-    for (const sub of [...subscriptions]) {
-      sub.execute()
+    if (signal.value !== newValue) {
+      signal.value = newValue
+      // 通知订阅者
+      signal.subscribers.forEach((subscriber) => subscriber())
     }
   }
   const setter = (newValue: T) => {
@@ -54,34 +47,42 @@ export const createSignal = <T = unknown>(
   }
   return [getter, setter]
 }
-
-const createEffect = (effect) => {
+/**
+ * @description: 只能是 createSignal getter，或者 effect 中包括了 createSignal 的 getter，无须第二个参数也能是响应式
+ * @param {*} effect 是订阅的函数，当 signal 的 setter 触发时，effect 会触发
+ * @param {T} signal createSignal 的 getter
+ * @return {*}
+ */
+export const createEffect = <T, D>(
+  effect: (v?: T) => T,
+  signal?: () => D,
+): void => {
   const execute = () => {
-    running.deps.clear()
-    context.push(running)
+    context.push(execute)
     try {
+      if (signal instanceof Function) {
+        signal()
+      }
       effect()
     } finally {
-      context.pop(running)
+      // 释放
+      context.pop()
     }
-  }
-
-  const running = {
-    execute,
-    deps: new Set(),
   }
   execute()
 }
 
-const createMemo = (fn:Function) => {
-  const [memo, setMemo] = createSignal()
-  createEffect(() => setMemo(fn()))
+export const createMemo = <T>(
+  fn: Function,
+  value?: T,
+  options?: { equals?: boolean | ((prev: T | undefined, next: T) => boolean) },
+): (() => T | undefined) => {
+  const [memo, setMemo] = createSignal(fn(), options)
+  if (value instanceof Function) {
+    createEffect(() => setMemo(fn()), value())
+  } else {
+    createEffect(() => setMemo(fn()))
+  }
   return memo
 }
 
-const [name, setName] = createSignal('a')
-const fullName = createMemo(() => {
-  return 'c-' + name()
-})
-createEffect(() => console.log(name(), fullName()))
-setName('b')
