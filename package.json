@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "clean": "sh ./bin/clean.sh",
     "test": "sh ./bin/test.sh",
     "lint": "sh ./bin/lint.sh",
     "lint:ts": "eslint --cache .",

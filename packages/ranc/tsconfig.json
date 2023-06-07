@@ -16,8 +16,7 @@
     "inlineSourceMap": true,
     "baseUrl": ".",
     "experimentalDecorators": true,
-    "jsx": "react",
-    // 自定义tsx工厂函数
+    "jsx": "preserve",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "paths": {
