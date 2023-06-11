@@ -2,8 +2,8 @@
  * @Author: ran
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
- * @LastEditors: ran
- * @LastEditTime: 2023-06-05 15:32:49
+ * @LastEditors: chaxus nouo18@163.com
+ * @LastEditTime: 2023-06-11 20:51:03
  */
 
 // DOM
@@ -42,7 +42,7 @@ export type RefCallback<T> = {
 
 export type Ref<T = null> = RefCallback<T> | RefObject<T> | null
 
-export interface FC<P extends Partial<FiberProps> = Partial<FiberProps>> {
+export interface FC<P extends Attributes = Attributes> {
   (props: P): RancNode
 }
 

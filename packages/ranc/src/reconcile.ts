@@ -12,7 +12,9 @@ import { resetCursor } from './hook'
 import { schedule, shouldYield } from './schedule'
 import { commit } from './commit'
 import { initArray } from './utils'
-
+/**
+ * @description: reconcile.ts 负责 vdom 转 fiber 
+ */
 let currentFiber: Fiber
 
 export const render = (fiber: Fiber, node: DOMElement | null): void => {

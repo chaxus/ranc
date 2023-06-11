@@ -1,41 +1,104 @@
-import { isArr, isStr } from "@/utils"
-import type { Attributes, RancNode } from "@/type"
 
-// TODO: props type 
-// 创建虚拟 DOM
-export const h = (type: string, props: any, ...children: RancNode[]):RancNode => {
-    children = flat(initArray(props.children || children || []))
-    const key = props.key || null
-    const ref = props.ref || null
-  
-    if (key) props.key = undefined
-    if (ref) props.ref = undefined
-    props.children = children
-    return {
+import type { ComponentChildren, RefObject, RenderableProps, VNode } from '../jsx-runtime'
+import { _catchError, slice } from '@/utils';
+
+const options: any = {
+    _catchError,
+};
+
+let vnodeId = 0;
+
+/**
+ * Create an virtual node (used for JSX)
+ * @param {import('./internal').VNode["type"]} type The node name or Component
+ * constructor for this virtual node
+ * @param {object | null | undefined} [props] The properties of the virtual node
+ * @param {Array<import('.').ComponentChildren>} [children] The children of the virtual node
+ * @returns {import('./internal').VNode}
+ */
+export function createElement(type: any, props: Record<string, string | number | null> | null | undefined = {}, children: Array<ComponentChildren>): VNode {
+    const normalizedProps: Record<string, unknown> = {}
+    let key: any,
+        ref: any,
+        i;
+    if (props) {
+        for (i in props) {
+            if (i == 'key') key = props[i];
+            else if (i == 'ref') ref = props[i];
+            else normalizedProps[i] = props[i];
+        }
+    }
+    if (arguments.length > 2) {
+        normalizedProps.children =
+            arguments.length > 3 ? slice.call(arguments, 2) : children;
+    }
+
+    // If a Component VNode, check for and apply defaultProps
+    // Note: type may be undefined in development, must never error here.
+    if (typeof type === 'function' && type.defaultProps != null) {
+        for (i in type.defaultProps) {
+            if (normalizedProps[i] === undefined) {
+                normalizedProps[i] = type.defaultProps[i];
+            }
+        }
+    }
+
+    return createVNode(type, normalizedProps, key, ref, null);
+}
+
+/**
+ * Create a VNode (used internally by Preact)
+ * @param {import('./internal').VNode["type"]} type The node name or Component
+ * Constructor for this virtual node
+ * @param {object | string | number | null} props The properties of this virtual node.
+ * If this virtual node represents a text node, this is the text of the node (string or number).
+ * @param {string | number | null} key The key for this virtual node, used when
+ * diffing it against its children
+ * @param {import('./internal').VNode["ref"]} ref The ref property that will
+ * receive a reference to its created child
+ * @returns {import('./internal').VNode}
+ */
+export function createVNode(type: VNode["type"], props: object | string | number | null, key: string | number | null, ref: VNode["ref"], original: null): VNode<any> {
+    // V8 seems to be better at detecting type shapes if the object is allocated from the same call site
+    // Do not inline into createElement and coerceToVNode!
+    const vnode = {
         type,
         props,
         key,
-        ref
-    }
+        ref,
+        _children: null,
+        _parent: null,
+        _depth: 0,
+        _dom: null,
+        // _nextDom must be initialized to undefined b/c it will eventually
+        // be set to dom.nextSibling which can return `null` and it is important
+        // to be able to distinguish between an uninitialized _nextDom and
+        // a _nextDom that has been set to `null`
+        _nextDom: undefined,
+        _component: null,
+        _hydrating: null,
+        constructor: undefined,
+        _original: original == null ? ++vnodeId : original
+    };
+
+    // Only invoke the vnode hook if this was *not* a direct copy:
+    if (original == null && options.vnode != null) options.vnode(vnode);
+
+    return vnode;
 }
 
-export function Fragment(props: Attributes): RancNode[] {
-    return props.children
+export function createRef<T = any>(): RefObject<T> {
+    return { current: null };
 }
 
-const initArray = (arr?: RancNode[]): [] | RancNode[] => (!arr ? [] : isArr(arr) ? arr : [arr]);
-
-const some = (x: unknown): boolean => x != null && x !== true && x !== false
-
-const flat = (arr: RancNode[], target: RancNode[] = []) => {
-    arr.forEach(v => {
-        isArr(v)
-            ? flat(v, target)
-            : some(v) && target.push(isStr(v) ? createText(v) : v)
-    })
-    return target
+export function Fragment(props: RenderableProps<{}>): ComponentChildren {
+    return props.children;
 }
 
-
-const createText = (dom: RancNode): any =>
-    ({ type: '#text', props: { nodeValue: dom + '' } })
+/**
+ * Check if a the argument is a valid Preact VNode.
+ * @param {*} vnode
+ * @returns {vnode is import('./internal').VNode}
+ */
+export const isValidElement = (vnode: VNode): Boolean =>
+    vnode != null && vnode.constructor === undefined;

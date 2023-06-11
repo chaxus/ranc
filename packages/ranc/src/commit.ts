@@ -2,7 +2,11 @@ import { insertBeforeElement, updateElement } from '@/dom'
 import { isFn } from '@/reconcile'
 import { TAG } from '@/type';
 import type { DOMElement, Fiber, FiberRef } from '@/type';
-
+/**
+ * @description: 操作具体 dom 和执行副作用
+ * @param {Fiber} fiber
+ * @return {*}
+ */
 export const commit = (fiber: Fiber): void => {
   if (!fiber) {
     return
@@ -43,3 +47,13 @@ export const kidsRefer = (kids: Array<Fiber>): void => {
   })
 }
 
+/**
+ * @description: new code
+ * @return {*}
+ */
+
+// commit 阶段还分为了 3 个小阶段：before mutation、mutation、layout。
+
+// 具体操作 dom 的阶段是 mutation，操作 dom 之前是 before mutation，而操作 dom 之后是 layout。
+
+// layout 阶段在操作 dom 之后，所以这个阶段是能拿到 dom 的，ref 更新是在这个阶段，useLayoutEffect 回调函数的执行也是在这个阶段。

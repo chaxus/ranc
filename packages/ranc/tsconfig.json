@@ -1,5 +1,4 @@
 {
-  "include": ["src", "test", "**/*.ts","**/*.tsx"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "module": "ESNext",
