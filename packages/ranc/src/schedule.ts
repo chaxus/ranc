@@ -11,7 +11,7 @@ let deadline: number = 0
 
 export const startTransition = (cb: () => void): void => {
   // 将回调添加到 transitions 数组
-  // 执行任务
+  // 又将任务从 transitions 中取出来，但是包装了一层，执行任务
   transitions.push(cb) && translate()
 }
 
@@ -23,11 +23,12 @@ export const schedule = (callback: Function): void => {
   startTransition(flush)
 }
 
-// 根据 queueMicrotask， MessageChannel，setTimeout 进行执行任务
+// 根据 queueMicrotask， MessageChannel，setTimeout 包装任务
 const task = (pending: boolean) => {
   // 取出 transitions 数组中第一个执行回调函数
   const cb = () => transitions.splice(0, 1).forEach(c => c())
   // 根据 queueMicrotask， MessageChannel，setTimeout 进行执行任务
+  // pending 为 false 时，不执行 queueMicrotask ，防止无限制的插入微任务，导致页面卡死
   if (!pending && typeof queueMicrotask !== 'undefined') {
     return () => queueMicrotask(cb)
   }

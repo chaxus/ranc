@@ -1,5 +1,5 @@
-import type { ErrorInfo, VNode } from '../jsx-runtime'
 import type { Fiber, FiberProps } from "./type";
+import type { ErrorInfo, VNode } from '@/src/vdom'
 
 export const isArr = Array.isArray
 

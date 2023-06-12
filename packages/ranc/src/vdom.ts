@@ -16,7 +16,7 @@ interface FunctionComponent<P = {}> {
   defaultProps?: Partial<P> | undefined
 }
 
-interface ErrorInfo {
+export interface ErrorInfo {
   componentStack?: string
 }
 // class Component
@@ -84,7 +84,7 @@ interface RancContext<T> extends Context<T> {}
 // function createContext<T>(defaultValue: T): Context<T>;
 // VNode 
 
-interface VNode<P = {}> {
+export interface VNode<P = {}> {
   type: ComponentType<P> | string
   props: P & { children: ComponentChildren }
   key: Key

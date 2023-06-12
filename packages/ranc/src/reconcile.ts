@@ -1,38 +1,36 @@
-import { TAG } from './type'
+import { TAG } from '@/src/type'
 import type {
   DOMElement,
   Effect,
   Fiber,
   FiberAction,
   FiberProps,
-} from './type'
-import { createElement, removeElement } from './dom'
-import { resetCursor } from './hook'
-import { schedule, shouldYield } from './schedule'
-import { commit } from './commit'
-import { initArray } from './utils'
+} from '@/src/type'
+import { createElement, removeElement } from '@/src/dom'
+import { resetCursor } from '@/src/hook'
+import { schedule, shouldYield } from '@/src/schedule'
+import { commit } from '@/src/commit'
+import { initArray } from '@/src/utils'
+import type { VNode } from '@/src/vdom'
+
 
 /**
  * @description: reconcile.ts 负责 vdom 转 fiber 
  */
 let currentFiber: Fiber
 
-export const render = (fiber: Fiber, node: DOMElement | null): void => {
-  if (node) {
-    const rootFiber:any = {
+export const render = (vnode: VNode, node: DOMElement | null): void => {
+  if (vnode && node) {
+    const root = {
       node,
-      child: fiber,
-      dirty: false,
-      type: 'root',
-      isComp: false,
-      lane: TAG.UPDATE,
-    }
-    update(rootFiber)
+      props: { children: vnode },
+    } as any
+    update(root)
   }
 }
 
-export const update = (fiber: Fiber): void => {
-  if (!fiber.dirty) {
+export const update = (fiber: Fiber<FiberProps> | undefined): void => {
+  if (fiber && !fiber?.dirty) {
     // 标记为 dirty 表示更新过了
     fiber.dirty = true
     schedule(() => reconcile(fiber))
@@ -109,6 +107,7 @@ const updateHook = (fiber: Fiber): void => {
   if (fiber.type instanceof Function) {
     const children = fiber.type(fiber.props || {})
     fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
+    children && reconcileChildren(fiber, children)
   }
 }
 
