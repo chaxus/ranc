@@ -1,5 +1,5 @@
-export { createElement, Fragment, createElement as h, createRef, isValidElement } from '@/vdom'
-export { render } from '@/reconcile'
+export { createElement, Fragment, createElement as h, createRef, isValidElement } from '@/src/vdom'
+export { render } from '@/src/reconcile'
 export {
   useState,
   useReducer,
@@ -11,9 +11,9 @@ export {
   useLayout as useLayoutEffect,
   useContext,
   createContext,
-} from '@/hook'
-export { shouldYield, schedule as startTranstion } from '@/schedule'
-export * from '@/type'
+} from '@/src/hook'
+export { shouldYield, schedule as startTranstion } from '@/src/schedule'
+export * from '@/src/type'
 
 /**
  * @description: new code

@@ -1,13 +1,13 @@
-import { TAG } from '@/type';
-import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/type'
-import { kidsRefer, refer } from '@/commit'
-import { isNothing, isStr } from '@/utils'
+import { TAG } from '@/src/type';
+import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/src/type'
+import { kidsRefer, refer } from '@/src/commit'
+import { isNothing, isStr } from '@/src/utils'
 
 const defaultObj = {}
 
 const jointIter = <P extends Attributes>(
     aProps: Partial<P> & Record<string, any>,
-    bProps: P & Record<string, any>,
+    bProps: Partial<P> & Record<string, any>,
     callback: (name: string, a: any, b: any) => void
 ) => {
     aProps = aProps || defaultObj

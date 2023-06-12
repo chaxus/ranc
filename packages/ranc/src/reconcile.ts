@@ -5,13 +5,13 @@ import type {
   Fiber,
   FiberAction,
   FiberProps,
-  FC,
 } from './type'
-import { createElement, createText, removeElement } from './dom'
+import { createElement, removeElement } from './dom'
 import { resetCursor } from './hook'
 import { schedule, shouldYield } from './schedule'
 import { commit } from './commit'
 import { initArray } from './utils'
+
 /**
  * @description: reconcile.ts 负责 vdom 转 fiber 
  */
@@ -19,7 +19,7 @@ let currentFiber: Fiber
 
 export const render = (fiber: Fiber, node: DOMElement | null): void => {
   if (node) {
-    const rootFiber: Fiber = {
+    const rootFiber:any = {
       node,
       child: fiber,
       dirty: false,
@@ -122,9 +122,6 @@ const updateHost = (fiber: Fiber): void => {
   }
   fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
 }
-
-const simpleVnode = (type: string | FC) =>
-  isStr(type) ? createText(type) : type
 
 const getParentNode = (fiber: Fiber): DOMElement | undefined => {
   while (fiber.parent && (fiber = fiber.parent)) {

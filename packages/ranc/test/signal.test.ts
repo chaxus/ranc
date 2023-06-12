@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEffect, createMemo, createSignal } from '@/signal'
+import { createEffect, createMemo, createSignal } from '@/src/signal'
 
 describe('signal', () => {
   it('createEffect, createMemo, createSignal', () => {

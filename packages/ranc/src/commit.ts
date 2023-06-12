@@ -1,7 +1,7 @@
-import { insertBeforeElement, updateElement } from '@/dom'
-import { isFn } from '@/reconcile'
-import { TAG } from '@/type';
-import type { DOMElement, Fiber, FiberRef } from '@/type';
+import { insertBeforeElement, updateElement } from '@/src/dom'
+import { isFn } from '@/src/reconcile'
+import { TAG } from '@/src/type';
+import type { DOMElement, Fiber, FiberRef } from '@/src/type';
 /**
  * @description: 操作具体 dom 和执行副作用
  * @param {Fiber} fiber

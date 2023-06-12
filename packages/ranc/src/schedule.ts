@@ -1,5 +1,5 @@
-import type { Task } from './type'
-import { noop } from './utils'
+import type { Task } from '@/src/type'
+import { noop } from '@/src/utils'
 
 // 待任务队列
 const queue: Task[] = []
