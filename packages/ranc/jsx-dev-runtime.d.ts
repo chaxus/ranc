@@ -1,1 +1,1 @@
-export type { jsx, jsxs, jsx as jsxDEV, Fragment, JSX } from "./jsx-runtime";
+export type { JSX as jsxDEV, Fragment, JSX } from "@/types/jsx";
