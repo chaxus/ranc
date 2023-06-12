@@ -2,8 +2,9 @@
 
 
 declare module '@/src/*'
-// Type definitions for Ranc 17.0
-// Project: https://Ranc.dev/
+
+// Type definitions for React 17.0
+// Project: https://React.dev/
 // Definitions by: Asana <https://asana.com>
 //                 AssureSign <http://www.assuresign.com>
 //                 Microsoft <https://microsoft.com>
@@ -33,11 +34,11 @@ declare module '@/src/*'
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.8
 
-/// <reference path="global.d.ts" />
+/// <reference path="./type/global.d.ts" />
 
 import type * as CSS from 'csstype';
 import type * as PropTypes from 'prop-types';
-import type { Interaction as SchedulerInteraction } from './scheduler.d.ts';
+import type { Interaction as SchedulerInteraction } from './types/scheduler';
 
 type NativeAnimationEvent = AnimationEvent;
 type NativeClipboardEvent = ClipboardEvent;
