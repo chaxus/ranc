@@ -20,6 +20,8 @@ interface RootNode {
   }
 }
 
+const ROOT_NODE = 'root'
+
 /**
  * @description: reconcile.ts 负责 vdom 转 fiber
  */
@@ -39,7 +41,7 @@ export const update = (root: RootNode): void => {
   const { node, props } = root
   const fiber: Fiber = {
     tag: HostRoot,
-    type: 'root',
+    type: ROOT_NODE,
     node,
     props,
     dirty: true,
@@ -123,7 +125,7 @@ const updateHook = (fiber: Fiber): void => {
   }
 }
 
-const updateHost = (fiber: Fiber): void => {
+const  updateHost = (fiber: Fiber): void => {
   fiber.parentNode = getParentNode(fiber)
   if (!fiber.node) {
     const flag = createElement(fiber)
@@ -135,6 +137,7 @@ const updateHost = (fiber: Fiber): void => {
 }
 
 const getParentNode = (fiber: Fiber): DOMElement | undefined => {
+  if (!fiber.isComp) return fiber.node
   while (fiber.parent && (fiber = fiber.parent)) {
     if (!fiber.isComp) return fiber.node
   }
