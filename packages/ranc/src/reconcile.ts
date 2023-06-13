@@ -1,4 +1,4 @@
-import { TAG } from '@/src/type'
+import { HostRoot , TAG } from '@/src/type'
 import type {
   DOMElement,
   Effect,
@@ -13,28 +13,40 @@ import { commit } from '@/src/commit'
 import { initArray } from '@/src/utils'
 import type { VNode } from '@/src/vdom'
 
+interface RootNode {
+  node: Element
+  props: {
+    children: Array<VNode>
+  }
+}
 
 /**
- * @description: reconcile.ts 负责 vdom 转 fiber 
+ * @description: reconcile.ts 负责 vdom 转 fiber
  */
 let currentFiber: Fiber
 
-export const render = (vnode: VNode, node: DOMElement | null): void => {
+export const render = (vnode: VNode, node: Element): void => {
   if (vnode && node) {
     const root = {
       node,
-      props: { children: vnode },
-    } as any
+      props: { children: [vnode] },
+    }
     update(root)
   }
 }
 
-export const update = (fiber: Fiber<FiberProps> | undefined): void => {
-  if (fiber && !fiber?.dirty) {
-    // 标记为 dirty 表示更新过了
-    fiber.dirty = true
-    schedule(() => reconcile(fiber))
+export const update = (root: RootNode): void => {
+  const { node, props } = root
+  const fiber: Fiber = {
+    tag: HostRoot,
+    type: 'root',
+    node,
+    props,
+    dirty: true,
+    lane: TAG.UPDATE,
+    isComp: false,
   }
+  schedule(() => reconcile(fiber))
 }
 
 const reconcile = (fiber?: Fiber): boolean => {

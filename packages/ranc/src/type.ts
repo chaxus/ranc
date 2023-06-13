@@ -3,8 +3,10 @@
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: ran
- * @LastEditTime: 2023-06-12 17:15:02
+ * @LastEditTime: 2023-06-13 16:19:54
  */
+
+import type { VNode } from "@/src/vdom"
 
 // DOM
 export type DOMAttributes = NamedNodeMap
@@ -27,7 +29,7 @@ export type RancNode<P extends Attributes = Attributes, T = string> = {
 }
 
 // Fiber
-export type FiberProps = Attributes & { children: Array<Fiber>; memo: boolean }
+export type FiberProps = Attributes
 
 export type RancText = string | number
 
@@ -48,8 +50,9 @@ export interface FC<P extends Attributes = Attributes> {
 
 export interface Attributes extends Partial<DOMAttributes> {
   key?: Key
-  children: Array<RancNode>
   ref?: Ref
+  children?: Array<VNode>; 
+  memo?: boolean
 }
 
 export type FiberRef = (
