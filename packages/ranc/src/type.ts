@@ -3,7 +3,7 @@
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: ran
- * @LastEditTime: 2023-06-13 18:29:30
+ * @LastEditTime: 2023-06-13 18:30:31
  */
 
 import type { VNode } from "@/src/vdom"
