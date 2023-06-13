@@ -1,13 +1,19 @@
-import { TAG } from '@/type';
-import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/type'
-import { kidsRefer, refer } from '@/commit'
-import { isNothing, isStr } from '@/utils'
+import { TAG } from '@/src/type';
+import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/src/type'
+import { kidsRefer, refer } from '@/src/commit'
+import { isNothing, isStr } from '@/src/utils'
+
+const SVG_ORG = 'http://www.w3.org/2000/svg'
+const CHILDREN = 'children'
+const STYLE = 'style'
+const O = 'o'
+const N = 'n'
 
 const defaultObj = {}
 
 const jointIter = <P extends Attributes>(
     aProps: Partial<P> & Record<string, any>,
-    bProps: P & Record<string, any>,
+    bProps: Partial<P> & Record<string, any>,
     callback: (name: string, a: any, b: any) => void
 ) => {
     aProps = aProps || defaultObj
@@ -21,14 +27,14 @@ const jointIter = <P extends Attributes>(
  */
 export const updateElement = <P extends FiberProps>(dom: DOMElement, aProps: Partial<P>, bProps: Partial<P & Record<string, any>>): void => {
     jointIter(aProps, bProps, (name, a, b) => {
-        if (a === b || name === 'children') {
-        } else if (name === 'style' && !isStr(b)) {
+        if (a === b || name === CHILDREN) {
+        } else if (name === STYLE && !isStr(b)) {
             jointIter(a, b, (styleKey, aStyle, bStyle) => {
                 if (aStyle !== bStyle) {
                     dom[name][styleKey] = bStyle || ''
                 }
             })
-        } else if (name[0] === 'o' && name[1] === 'n') {
+        } else if (name[0] === O && name[1] === N) {
             name = name.slice(2).toLowerCase()
             if (a) dom.removeEventListener(name, a)
             dom.addEventListener(name, b)
@@ -51,10 +57,7 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
         fiber.type === '#text'
             ? document.createTextNode('')
             : fiber.lane & TAG.SVG && isStr(fiber.type)
-                ? document.createElementNS(
-                    'http://www.w3.org/2000/svg',
-                    fiber.type
-                )
+                ? document.createElementNS(SVG_ORG,fiber.type)
                 : isStr(fiber.type) && document.createElement(fiber.type)
     dom && updateElement(dom, {}, fiber.props || {})
     return dom
@@ -65,7 +68,7 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
  */
 export const removeElement = (fiber: Fiber): void => {
     if (fiber.isComp) {
-        fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
+        // fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
         fiber.kids && fiber.kids?.forEach(removeElement)
     } else {
         fiber.parentNode && fiber.parentNode.removeChild(fiber.node)

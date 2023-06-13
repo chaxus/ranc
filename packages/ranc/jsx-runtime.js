@@ -1,1 +1,1 @@
-export { createVirtualDom as jsx, createVirtualDom as jsxs, Fragment } from "./src/vdom"
+export { createElement as jsx, createElement as jsxs, Fragment } from "./src/vdom"

@@ -2,8 +2,8 @@
  * @Author: ran
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
- * @LastEditors: chaxus nouo18@163.com
- * @LastEditTime: 2023-06-11 20:51:03
+ * @LastEditors: ran
+ * @LastEditTime: 2023-06-12 17:15:02
  */
 
 // DOM
@@ -72,13 +72,13 @@ export const HostText = 6 // 文本类型 比如：<div>123</div>
 export interface Fiber<P extends FiberProps = FiberProps> {
   tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的tag）
   key?: string
-  type: string | FC<Partial<P>> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
+  type: string | FC<P> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
   node: DOMElement // 真实的DOM节点
-  kids?: Array<Fiber<P>>
+  kids?: Array<Fiber<P>> // 子节点数组
   dirty: boolean
-  old?: Fiber<P>
-
+  old?: Fiber<P> 
+  // fiber 链表
   parent?: Fiber<P>
   sibling?: Fiber<P>
   child?: Fiber<P>
@@ -90,7 +90,7 @@ export interface Fiber<P extends FiberProps = FiberProps> {
   props?: P
   // 上次渲染所需要的 props
   oldProps?: P
-
+  // 应该执行什么操作
   action?: any
   lane: number // 优先级，用于调度
   isComp: boolean

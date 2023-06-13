@@ -19,7 +19,7 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./*"],
     }
   }
 }
