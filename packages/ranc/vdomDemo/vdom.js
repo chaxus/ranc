@@ -21,7 +21,11 @@ const jsx = createElement("ul", {
 const App = () => {
   return createElement("div", {
     className: "app"
-  }, createElement(Child, null), createElement(Children, null));
+  }, createElement(Child, {
+    key: "1"
+  }), createElement(Children, {
+    key: "2"
+  }));
 };
 const Children = () => {
   return createElement("div", {

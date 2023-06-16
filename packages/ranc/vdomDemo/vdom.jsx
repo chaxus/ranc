@@ -24,8 +24,8 @@ const jsx = (
 const App = () => {
   return (
     <div className="app">
-      <Child />
-      <Children></Children>
+      <Child  key="1" />
+      <Children key="2"></Children>
     </div>
   )
 }

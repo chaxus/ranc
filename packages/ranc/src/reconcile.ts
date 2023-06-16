@@ -4,7 +4,6 @@ import type {
   Effect,
   Fiber,
   FiberAction,
-  FiberProps,
 } from '@/src/type'
 import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
@@ -149,7 +148,7 @@ const updateHook = (fiber: Fiber): void => {
   if (fiber.type instanceof Function) {
     const children = fiber.type(fiber.props || {})
     fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
-    children && reconcileChildren(fiber, children)
+    children && reconcileChildren(fiber, [children])
   }
 }
 
@@ -217,8 +216,8 @@ const side = (effects?: Effect[]): void => {
 // b 是新的数组
 // 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
 const diff = function (
-  a: Fiber<FiberProps>[] | [],
-  b: Fiber<FiberProps>[] | [],
+  a: ComponentChildren,
+  b: ComponentChildren,
 ) {
   const actions: Array<FiberAction> = [],
     aIdx: Record<string, number> = {},

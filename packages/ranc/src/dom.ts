@@ -1,5 +1,5 @@
 import { TAG } from '@/src/type';
-import type { Attributes, DOMElement, FC, Fiber, FiberProps, RancNode } from '@/src/type'
+import type { Attributes, DOMElement, Fiber } from '@/src/type'
 import { kidsRefer, refer } from '@/src/commit'
 import { isNothing, isStr } from '@/src/utils'
 
