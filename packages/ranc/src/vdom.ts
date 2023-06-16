@@ -116,14 +116,15 @@ type ComponentChild =
   | boolean
   | null
   | undefined
-type ComponentChildren = ComponentChild[] | ComponentChild
+
+export type ComponentChildren = ComponentChild[]
 
 interface Attributes {
   key?: Key | undefined
   jsx?: boolean | undefined
 }
 
-type RenderableProps<P, RefType = any> = P &
+export type RenderableProps<P, RefType = any> = P &
   Readonly<Attributes & { children?: ComponentChildren; ref?: Ref<RefType> }>
 
 const options: any = {
@@ -134,11 +135,11 @@ let vnodeId = 0
 
 /**
  * Create an virtual node (used for JSX)
- * @param {import('./internal').VNode["type"]} type The node name or Component
+ * @param {VNode["type"]} type The node name or Component
  * constructor for this virtual node
  * @param {object | null | undefined} [props] The properties of the virtual node
- * @param {Array<import('.').ComponentChildren>} [children] The children of the virtual node
- * @returns {import('./internal').VNode}
+ * @param {Array<ComponentChildren>} [children] The children of the virtual node
+ * @returns {VNode}
  */
 export function createElement(
   type: any,
@@ -146,9 +147,9 @@ export function createElement(
   children: Array<ComponentChildren>,
 ): VNode {
   const normalizedProps: Record<string, unknown> = {}
-  let key: any, ref: any, i
+  let key: string | number | null = null, ref: any = null
   if (props) {
-    for (i in props) {
+    for (const i in props) {
       if (i === 'key') key = props[i]
       else if (i === 'ref') ref = props[i]
       else normalizedProps[i] = props[i]
@@ -162,7 +163,7 @@ export function createElement(
   // If a Component VNode, check for and apply defaultProps
   // Note: type may be undefined in development, must never error here.
   if (typeof type === 'function' && type.defaultProps != null) {
-    for (i in type.defaultProps) {
+    for (const i in type.defaultProps) {
       if (normalizedProps[i] === undefined) {
         normalizedProps[i] = type.defaultProps[i]
       }
@@ -224,13 +225,5 @@ export function createRef<T = any>(): RefObject<T> {
 }
 
 export function Fragment(props: RenderableProps<{}>): ComponentChildren {
-  return props.children
+  return props.children || []
 }
-
-/**
- * Check if a the argument is a valid Preact VNode.
- * @param {*} vnode
- * @returns {Boolean}
- */
-export const isValidElement = (vnode: VNode): Boolean =>
-  vnode != null && vnode.constructor === undefined

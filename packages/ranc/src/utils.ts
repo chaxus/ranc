@@ -1,9 +1,9 @@
 import type { Fiber, FiberProps } from "./type";
-import type { ErrorInfo, VNode } from '@/src/vdom'
+import type { ComponentChildren, ErrorInfo, VNode } from '@/src/vdom'
 
 export const isArr = Array.isArray
 
-export const initArray = (arr?: Fiber<FiberProps>[]): [] | Fiber<FiberProps>[] => (!arr ? [] : isArr(arr) ? arr : [arr]);
+export const initArray = (arr:ComponentChildren): ComponentChildren => (!arr ? [] : isArr(arr) ? arr : [arr]);
 
 export const isStr = (s: unknown): s is string => s instanceof String
 

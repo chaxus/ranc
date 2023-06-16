@@ -25,7 +25,7 @@ const jointIter = <P extends Attributes>(
  * @description: 更新元素
  * @param {*} P
  */
-export const updateElement = <P extends FiberProps>(dom: DOMElement, aProps: Partial<P>, bProps: Partial<P & Record<string, any>>): void => {
+export const updateElement = <P = {}>(dom: DOMElement, aProps: Partial<P>, bProps: Partial<P & Record<string, any>>): void => {
     jointIter(aProps, bProps, (name, a, b) => {
         if (a === b || name === CHILDREN) {
         } else if (name === STYLE && !isStr(b)) {
