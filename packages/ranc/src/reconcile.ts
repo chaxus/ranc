@@ -1,4 +1,4 @@
-import { HostRoot , TAG } from '@/src/type'
+import { HostRoot, TAG } from '@/src/type'
 import type {
   DOMElement,
   Effect,
@@ -48,6 +48,10 @@ export const update = (root: RootNode): void => {
     lane: TAG.UPDATE,
     isComp: false,
   }
+  // schedule 是调度器
+  // 将优先级高的任务推进 reconcile
+  // reconcile 将 vdom 转换成 fiber，并同时打上进行什么操作的 tag
+  // render 渲染成 dom
   schedule(() => reconcile(fiber))
 }
 
@@ -125,7 +129,7 @@ const updateHook = (fiber: Fiber): void => {
   }
 }
 
-const  updateHost = (fiber: Fiber): void => {
+const updateHost = (fiber: Fiber): void => {
   fiber.parentNode = getParentNode(fiber)
   if (!fiber.node) {
     const flag = createElement(fiber)
@@ -255,3 +259,23 @@ export const getCurrentFiber = (): Fiber => currentFiber
 export const isFn = (x: unknown): x is Function => typeof x === 'function'
 export const isStr = (s: unknown): s is number | string =>
   typeof s === 'number' || typeof s === 'string'
+
+
+// currentFiber , workInProgressFiber , fiberRootNode
+
+// React 更新DOM 采用的是双缓存技术。React 中最多会存在两颗 Fiber树：
+
+// currentFiber：页面中显示的内容
+
+// workInProgressFiber：内存中正在重新构建的 Fiber树。
+
+// 双缓存中：当 workInProgressFiber 在内存中构建完成后，
+
+// React 会直接用它 替换掉 currentFiber，这样能快速更新 DOM。
+
+// 一旦 workInProgressFiber树 渲染在页面上后，它就会变成 currentFiber 树，也就是说 fiberRootNode 会指向它。
+
+// 在 currentFiber 中有一个属性 alternate 指向它对应的 workInProgressFiber，
+
+// 同样，workInProgressFiber 也有一个属性 alternate 指向它对应的 currentFiber。也就是下面的这种结构：
+
