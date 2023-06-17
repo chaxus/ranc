@@ -3,10 +3,10 @@
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: ran
- * @LastEditTime: 2023-06-13 18:30:31
+ * @LastEditTime: 2023-06-16 16:00:22
  */
 
-import type { VNode } from "@/src/vdom"
+import type { ComponentChildren, VNode } from "@/src/vdom"
 
 // DOM
 export type DOMAttributes = NamedNodeMap
@@ -44,7 +44,7 @@ export type RefCallback<T> = {
 
 export type Ref<T = null> = RefCallback<T> | RefObject<T> | null
 
-export interface FC<P extends Attributes = Attributes> {
+export interface FC<P = {}> {
   (props: P): RancNode
 }
 
@@ -62,23 +62,23 @@ export type FiberRef = (
 // workTags.ts - 对应 fiber 节点的类型
 export type WorkTag =
   | typeof FunctionComponent
-  | typeof HostRoot
+  | typeof HOST_ROOT
   | typeof HostComponent
   | typeof HostText
 
 export const FunctionComponent = 0
-export const HostRoot = 3 // Root Fiber 可以理解为根元素 ， 通过reactDom.render()产生的根元素
+export const HOST_ROOT = 3 // Root Fiber 可以理解为根元素 ， 通过reactDom.render()产生的根元素
 
 export const HostComponent = 5 // dom元素 比如 <div></div>
 export const HostText = 6 // 文本类型 比如：<div>123</div>
 
-export interface Fiber<P extends FiberProps = FiberProps> {
+export interface Fiber<P = {}> {
   tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的tag）
   key?: string
   type: string | FC<P> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
   node: DOMElement // 真实的DOM节点
-  kids?: Array<Fiber<P>> // 子节点数组
+  kids?: ComponentChildren // 子节点数组
   dirty: boolean
   old?: Fiber<P> 
   // fiber 链表
@@ -90,15 +90,15 @@ export interface Fiber<P extends FiberProps = FiberProps> {
   ref?: FiberRef
   hooks?: Hook
   // 本次渲染所需要的 props
-  props?: P
+  props?: P & { children: ComponentChildren }
   // 上次渲染所需要的 props
-  oldProps?: P
+  oldProps?: P & { children: ComponentChildren }
   // 应该执行什么操作
   action?: any
   lane: number // 优先级，用于调度
   isComp: boolean
   memo?: boolean
-  shouldUpdate?: (newProps: Partial<P>, oldProps: Partial<P>) => boolean
+  shouldUpdate?: (newProps: P, oldProps: P) => boolean
 }
 
 export interface FiberAction {

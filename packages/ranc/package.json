@@ -20,12 +20,16 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
     "dev": "vite",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "vdom": "sh ./bin/vdom.sh"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/cli": "^7.22.5",
+    "@babel/core": "^7.22.5",
+    "@babel/preset-react": "^7.22.5",
     "@types/prop-types": "^15.7.5",
     "csstype": "^3.1.2",
     "prop-types": "^15.8.1",

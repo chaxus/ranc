@@ -1,17 +1,16 @@
-import { HostRoot, TAG } from '@/src/type'
+import { HOST_ROOT, TAG } from '@/src/type'
 import type {
   DOMElement,
   Effect,
   Fiber,
   FiberAction,
-  FiberProps,
 } from '@/src/type'
 import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
 import { schedule, shouldYield } from '@/src/schedule'
 import { commit } from '@/src/commit'
 import { initArray } from '@/src/utils'
-import type { VNode } from '@/src/vdom'
+import type { ComponentChildren, VNode } from '@/src/vdom'
 
 interface RootNode {
   node: Element
@@ -20,7 +19,7 @@ interface RootNode {
   }
 }
 
-const ROOT_NODE = 'root'
+const ROOT_NODE = 'div'
 
 /**
  * @description: reconcile.ts 负责 vdom 转 fiber
@@ -36,11 +35,33 @@ export const render = (vnode: VNode, node: Element): void => {
     update(root)
   }
 }
+/**
+ * @description:
+ * @param {*} current 在视图层渲染的树
+ * @param {*} workInProgress 它就是在整个内存中所构建的 Fiber树，所有的更新都发生在workInProgress中，所以这个树是最新状态的，之后它将替换给current
+ * @param {*} renderLanes 跟优先级有关
+ * @return {*}
+ */
+const beginWork = (current, workInProgress, renderLanes) => {}
+
+/**
+ * @description: 创建 FiberNode
+ * @return {*}
+ */
+const createFiber = () => {}
+
+/**
+ * @description: 创建 FiberRootNode ，并指向真正的 root
+ * @return {*}
+ */
+const createFiberRoot = () => {}
+
+// update
 
 export const update = (root: RootNode): void => {
   const { node, props } = root
-  const fiber: Fiber = {
-    tag: HostRoot,
+  const rootFiber: Fiber = {
+    tag: HOST_ROOT,
     type: ROOT_NODE,
     node,
     props,
@@ -50,9 +71,9 @@ export const update = (root: RootNode): void => {
   }
   // schedule 是调度器
   // 将优先级高的任务推进 reconcile
-  // reconcile 将 vdom 转换成 fiber，并同时打上进行什么操作的 tag
+  // reconcile 将 vdom 转换成 fiber，新的 VDOM 和 旧的 Fiber 进行 diff 对比，并同时打上进行什么操作的 tag
   // render 渲染成 dom
-  schedule(() => reconcile(fiber))
+  schedule(() => reconcile(rootFiber))
 }
 
 const reconcile = (fiber?: Fiber): boolean => {
@@ -67,7 +88,6 @@ const memo = (fiber: Fiber) => {
     const scu = fiber.shouldUpdate || shouldUpdate
     // 当前组件是否需要更新，不需要的话返回兄弟节点
     if (!scu(fiber.props || {}, fiber.old.props)) {
-      // fast-fix
       return getSibling(fiber)
     }
   }
@@ -114,7 +134,10 @@ const bubble = (fiber: Fiber) => {
   }
 }
 
-const shouldUpdate = (a: Partial<FiberProps>, b: Partial<FiberProps>) => {
+const shouldUpdate = (
+  a: Record<string, unknown>,
+  b: Record<string, unknown>,
+) => {
   for (const i in a) if (!(i in b)) return true
   for (const i in b) if (a[i] !== b[i]) return true
 }
@@ -125,7 +148,7 @@ const updateHook = (fiber: Fiber): void => {
   if (fiber.type instanceof Function) {
     const children = fiber.type(fiber.props || {})
     fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
-    children && reconcileChildren(fiber, children)
+    children && reconcileChildren(fiber, [children])
   }
 }
 
@@ -141,13 +164,11 @@ const updateHost = (fiber: Fiber): void => {
 }
 
 const getParentNode = (fiber: Fiber): DOMElement | undefined => {
-  if (!fiber.isComp) return fiber.node
-  while (fiber.parent && (fiber = fiber.parent)) {
-    if (!fiber.isComp) return fiber.node
-  }
+  while (fiber.parent && (fiber = fiber.parent)) {}
+  return fiber.tag === HOST_ROOT ? undefined : fiber.node
 }
 
-const reconcileChildren = (fiber: Fiber, children: Array<Fiber>): void => {
+const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   const aCh = fiber.kids || [],
     bCh = (fiber.kids = initArray(children))
   const actions = diff(aCh, bCh)
@@ -195,8 +216,8 @@ const side = (effects?: Effect[]): void => {
 // b 是新的数组
 // 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
 const diff = function (
-  a: Fiber<FiberProps>[] | [],
-  b: Fiber<FiberProps>[] | [],
+  a: ComponentChildren,
+  b: ComponentChildren,
 ) {
   const actions: Array<FiberAction> = [],
     aIdx: Record<string, number> = {},
@@ -260,7 +281,6 @@ export const isFn = (x: unknown): x is Function => typeof x === 'function'
 export const isStr = (s: unknown): s is number | string =>
   typeof s === 'number' || typeof s === 'string'
 
-
 // currentFiber , workInProgressFiber , fiberRootNode
 
 // React 更新DOM 采用的是双缓存技术。React 中最多会存在两颗 Fiber树：
@@ -278,4 +298,3 @@ export const isStr = (s: unknown): s is number | string =>
 // 在 currentFiber 中有一个属性 alternate 指向它对应的 workInProgressFiber，
 
 // 同样，workInProgressFiber 也有一个属性 alternate 指向它对应的 currentFiber。也就是下面的这种结构：
-

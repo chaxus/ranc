@@ -1,4 +1,4 @@
-export { createElement, Fragment, createElement as h, createRef, isValidElement } from '@/src/vdom'
+export { createElement, Fragment, createElement as h, createRef } from '@/src/vdom'
 export { render } from '@/src/reconcile'
 export {
   useState,
