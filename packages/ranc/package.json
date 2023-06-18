@@ -21,7 +21,7 @@
     "test": "vitest",
     "dev": "vite",
     "prepublish": "npm run build",
-    "vdom": "sh ./bin/vdom.sh"
+    "demo": "sh ./bin/vdom.sh"
   },
   "keywords": [],
   "author": "",

@@ -57,7 +57,7 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
         fiber.type === '#text'
             ? document.createTextNode('')
             : fiber.lane & TAG.SVG && isStr(fiber.type)
-                ? document.createElementNS(SVG_ORG,fiber.type)
+                ? document.createElementNS(SVG_ORG, fiber.type)
                 : isStr(fiber.type) && document.createElement(fiber.type)
     dom && updateElement(dom, {}, fiber.props || {})
     return dom
@@ -67,14 +67,14 @@ export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | f
  * @param {Fiber} fiber
  */
 export const removeElement = (fiber: Fiber): void => {
-    if (fiber.isComp) {
-        // fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
-        fiber.kids && fiber.kids?.forEach(removeElement)
-    } else {
-        fiber.parentNode && fiber.parentNode.removeChild(fiber.node)
-        fiber.kids && kidsRefer(fiber.kids)
-        fiber.ref && refer(fiber.ref)
-    }
+    // if (fiber.isComp) {
+    // fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
+    // fiber.kids && fiber.kids?.forEach(removeElement)
+    // } else {
+    fiber.parentNode && fiber.node && fiber.parentNode.removeChild(fiber.node)
+    // fiber.kids && kidsRefer(fiber.kids)
+    fiber.ref && refer(fiber.ref)
+    // }
 }
 /**
  * @description: 插入元素
