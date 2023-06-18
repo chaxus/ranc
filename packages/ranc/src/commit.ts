@@ -12,6 +12,7 @@ export const commit = (fiber: Fiber): void => {
     return
   }
   const { op } = fiber.action || {}
+  console.log('fiber', fiber)
   if (op & TAG.INSERT || op & TAG.MOVE) {
     if (fiber.isComp && fiber.child) {
       fiber.child.action.op |= fiber.action.op
@@ -23,7 +24,7 @@ export const commit = (fiber: Fiber): void => {
     if (fiber.isComp && fiber.child) {
       fiber.child.action.op |= fiber.action.op
     } else {
-      updateElement(fiber.node, fiber.old?.props || {}, fiber.props || {})
+      fiber.node && updateElement(fiber.node, fiber.old?.props || {}, fiber.props || {})
     }
   }
 
@@ -41,10 +42,10 @@ export const refer = (ref: FiberRef, dom?: DOMElement): void => {
 }
 
 export const kidsRefer = (kids: Array<Fiber>): void => {
-  kids.forEach(kid => {
-    kid.kids && kidsRefer(kid.kids)
-    kid.ref && refer(kid.ref, undefined)
-  })
+  // kids.forEach(kid => {
+  //   kid.kids && kidsRefer(kid.kids)
+  //   kid.ref && refer(kid.ref, undefined)
+  // })
 }
 
 /**

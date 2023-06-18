@@ -2,11 +2,11 @@
  * @Author: ran
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
- * @LastEditors: ran
- * @LastEditTime: 2023-06-16 16:00:22
+ * @LastEditors: chaxus nouo18@163.com
+ * @LastEditTime: 2023-06-18 17:13:09
  */
 
-import type { ComponentChildren, VNode } from "@/src/vdom"
+import type { ComponentChild, ComponentChildren, ComponentType, VNode } from "@/src/vdom"
 
 // DOM
 export type DOMAttributes = NamedNodeMap
@@ -75,12 +75,13 @@ export const HostText = 6 // 文本类型 比如：<div>123</div>
 export interface Fiber<P = {}> {
   tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的tag）
   key?: string
-  type: string | FC<P> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
+  type: string | ComponentType<P> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
-  node: DOMElement // 真实的DOM节点
+  node?: DOMElement // 真实的DOM节点
   kids?: ComponentChildren // 子节点数组
   dirty: boolean
   old?: Fiber<P> 
+  alternate?: Fiber<P> 
   // fiber 链表
   parent?: Fiber<P>
   sibling?: Fiber<P>
@@ -103,8 +104,8 @@ export interface Fiber<P = {}> {
 
 export interface FiberAction {
   op: TAG
-  elm?: Fiber
-  before?: Fiber
+  elm?: ComponentChild
+  before?: ComponentChild
 }
 
 // Hook

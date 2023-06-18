@@ -22,10 +22,13 @@ const jsx = (
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const App = () => {
+  const [state, setState] = useState(true)
   return (
     <div className="app">
       <Child  key="1" />
       <Children key="2"></Children>
+      <button onClick={() => setState(!state)}>change</button>
+      {state ? <h1>0</h1> : <a>none</a>}
     </div>
   )
 }

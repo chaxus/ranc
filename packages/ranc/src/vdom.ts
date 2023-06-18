@@ -7,10 +7,10 @@ type RefCallback<T> = (instance: T | null) => void
 type Ref<T> = RefObject<T> | RefCallback<T> | null
 // Component
 
-type ComponentType<P = {}> = ComponentClass<P> | FunctionComponent<P>
- 
+export type ComponentType<P = {}> = ComponentClass<P> | FunctionComponent<P>
+
 // Function Component
-interface FunctionComponent<P = {}> {
+export interface FunctionComponent<P = {}> {
   (props: RenderableProps<P>, context?: any): VNode<any> | null
   displayName?: string
   defaultProps?: Partial<P> | undefined
@@ -46,7 +46,7 @@ interface Component<P = {}, S = {}> {
 }
 
 interface ComponentClass<P = {}, S = {}> {
-  new (props: P, context?: any): Component<P, S>
+  new(props: P, context?: any): Component<P, S>
   displayName?: string
   defaultProps?: Partial<P>
   contextType?: Context<any>
@@ -60,13 +60,13 @@ interface ComponentClass<P = {}, S = {}> {
 interface Consumer<T>
   extends FunctionComponent<{
     children: (value: T) => ComponentChildren
-  }> {}
+  }> { }
 
 interface Provider<T>
   extends FunctionComponent<{
     value: T
     children: ComponentChildren
-  }> {}
+  }> { }
 
 interface Context<T> {
   Consumer: Consumer<T>
@@ -74,12 +74,12 @@ interface Context<T> {
   displayName?: string
 }
 
-interface RancProvider<T> extends Provider<T> {}
+interface RancProvider<T> extends Provider<T> { }
 type ContextType<C extends Context<any>> = C extends Context<infer T>
-	? T
-	: never;
+  ? T
+  : never;
 
-interface RancContext<T> extends Context<T> {}
+interface RancContext<T> extends Context<T> { }
 
 // function createContext<T>(defaultValue: T): Context<T>;
 // VNode 
@@ -107,9 +107,8 @@ export interface VNode<P = {}> {
   endTime?: number
 }
 
-type ComponentChild =
-  | VNode<any>
-  | object
+export type ComponentChild =
+  | VNode<{}>
   | string
   | number
   | bigint
@@ -142,33 +141,31 @@ let vnodeId = 0
  * @returns {VNode}
  */
 export function createElement(
-  type: any,
+  type: VNode['type'],
   props: Record<string, string | number | null> | null | undefined = {},
-  children: Array<ComponentChildren>,
+  ...children: Array<ComponentChildren>
 ): VNode {
   const normalizedProps: Record<string, unknown> = {}
   let key: string | number | null = null, ref: any = null
   if (props) {
-    for (const i in props) {
+    Object.keys(props).forEach(i => {
       if (i === 'key') key = props[i]
       else if (i === 'ref') ref = props[i]
       else normalizedProps[i] = props[i]
-    }
+    })
   }
-  if (arguments.length > 2) {
-    normalizedProps.children =
-      arguments.length > 3 ? slice.call(arguments, 2) : children
+  if (children?.length > 0) {
+    normalizedProps.children = children
   }
-
   // If a Component VNode, check for and apply defaultProps
   // Note: type may be undefined in development, must never error here.
-  if (typeof type === 'function' && type.defaultProps != null) {
-    for (const i in type.defaultProps) {
-      if (normalizedProps[i] === undefined) {
-        normalizedProps[i] = type.defaultProps[i]
-      }
-    }
-  }
+  // if (typeof type === 'function' && type.defaultProps != null) {
+  //   for (const i in type.defaultProps) {
+  //     if (normalizedProps[i] === undefined) {
+  //       normalizedProps[i] = type.defaultProps[i]
+  //     }
+  //   }
+  // }
 
   return createVNode(type, normalizedProps, key, ref, null)
 }
