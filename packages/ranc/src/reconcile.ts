@@ -9,7 +9,7 @@ import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
 import { schedule, shouldYield } from '@/src/schedule'
 import { commit } from '@/src/commit'
-import { initArray } from '@/src/utils'
+import { initArray, isArray } from '@/src/utils'
 import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from '@/src/vdom'
 
 interface RootNode {
@@ -63,10 +63,12 @@ const createFiberRoot = () => { }
 
 // update
 export const update = (root: RootNode): void => {
-  const { node, props } = root
+  const { node } = root
+  const { type, props, key, ref } = root.props.children[0]
   workInProgressFiber = {
     tag: HOST_ROOT,
-    type: ROOT_NODE,
+    type,
+    key,
     parentNode: node,
     props,
     dirty: true,
@@ -102,6 +104,7 @@ const memo = (fiber: Fiber) => {
 
 const capture = (fiber: Fiber): Fiber | undefined => {
   // 是不是自定义的组件
+  debugger;
   fiber.isComp = isFn(fiber.type)
   if (fiber.isComp) {
     const memoFiber = memo(fiber)
@@ -151,10 +154,11 @@ const shouldUpdate = (
 const updateHook = (fiber: Fiber): void => {
   resetCursor()
   currentFiber = fiber
-  fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
-    children && reconcileChildren(fiber, [children])
+    children && reconcileChildren(fiber, isArray(children) ? children : [children])
+  } else {
+    fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   }
 }
 
@@ -178,8 +182,7 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   const aCh = fiber.kids || [],
     bCh = (fiber.kids = initArray(children))
   const actions = diff(aCh, bCh)
-  let prev: Fiber | undefined = undefined
-  for (let i = 0, len = bCh.length; i < len; i++) {
+  for (let i = 0, len = bCh.length, prev: Fiber | undefined = undefined; i < len; i++) {
     const child = bCh[i]
     if (typeof child === 'object' && child) {
       const { props, type, key } = child
@@ -188,7 +191,7 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
         tag: 0,
         dirty: true,
         lane: 0,
-        isComp: true
+        isComp: false
       }
       childFiber.action = actions[i]
       if (fiber.lane & TAG.SVG) {
