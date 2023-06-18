@@ -26,7 +26,7 @@ const ROOT_NODE = 'div'
  */
 let currentFiber: Fiber
 
-export const render = (vnode: VNode, node: Element): void => {
+export const render = (vnode: VNode, node: HTMLElement | null): void => {
   if (vnode && node) {
     const root = {
       node,
