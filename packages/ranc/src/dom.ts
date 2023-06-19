@@ -102,3 +102,4 @@ export const insertBeforeElement = (fiber: Fiber): void => {
 // 1.应该在 diff 生成 actions 之前，处理 vdom 成 fiber
 // 2.createElement 的第三个参数，可能是一个表达式
 // 3.createElement 的第一个参数，可能是一个函数，表示子组件
+// 4.渲染文本
