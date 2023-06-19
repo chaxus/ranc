@@ -254,7 +254,7 @@ function diff(a: ComponentChildren, b: ComponentChildren) {
     bIdx[key(b[i])] = i
   }
   // 双指针遍历 a 和 b ，直到有一方结束
-  for (i = j = 0; i != a.length || j != b.length;) {
+  for (i = j = 0; i !== a.length || j !== b.length;) {
     const aElm = a[i],
       bElm = b[j]
     if (b.length <= j) {
@@ -264,12 +264,12 @@ function diff(a: ComponentChildren, b: ComponentChildren) {
       i++
       // 如果 a 元素没有了，说明需要新增，打上新增的标记
     } else if (a.length <= i) {
-      actions.push({ op: TAG.INSERT, elm: bElm, before: a[i] })
+      actions.push({ op: TAG.INSERT, elm: bElm, before: aElm })
       j++
       // 如果两个元素的 key 和 type 类型相等，则进行更新
     } else if (key(aElm) === key(bElm)) {
       // clone(aElm, bElm)
-      actions.push({ op: TAG.UPDATE, elm: bElm, before: a[i] })
+      actions.push({ op: TAG.UPDATE, elm: bElm, before: aElm })
       i++
       j++
     } else {
