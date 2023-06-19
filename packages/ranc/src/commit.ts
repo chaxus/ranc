@@ -12,6 +12,7 @@ export const commit = (fiber: Fiber): void => {
     return
   }
   const { op } = fiber.action || {}
+  console.log('fiber', fiber)
   if (op & TAG.INSERT || op & TAG.MOVE) {
     if (fiber.isComp && fiber.child) {
       fiber.child.action.op |= fiber.action.op

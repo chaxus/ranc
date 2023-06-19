@@ -9,7 +9,11 @@ import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
 import { schedule, shouldYield } from '@/src/schedule'
 import { commit } from '@/src/commit'
+<<<<<<< HEAD
 import { initArray, isArray } from '@/src/utils'
+=======
+import { initArray } from '@/src/utils'
+>>>>>>> main
 import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from '@/src/vdom'
 
 interface RootNode {
@@ -63,12 +67,19 @@ const createFiberRoot = () => { }
 
 // update
 export const update = (root: RootNode): void => {
+<<<<<<< HEAD
   const { node } = root
   const { type, props, key, ref } = root.props.children[0]
   workInProgressFiber = {
     tag: HOST_ROOT,
     type,
     key,
+=======
+  const { node, props } = root
+  workInProgressFiber = {
+    tag: HOST_ROOT,
+    type: ROOT_NODE,
+>>>>>>> main
     parentNode: node,
     props,
     dirty: true,
@@ -154,6 +165,7 @@ const shouldUpdate = (
 const updateHook = (fiber: Fiber): void => {
   resetCursor()
   currentFiber = fiber
+  fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
     children && reconcileChildren(fiber, isArray(children) ? children : [children])
