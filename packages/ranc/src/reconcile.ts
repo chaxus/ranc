@@ -9,7 +9,7 @@ import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
 import { schedule, shouldYield } from '@/src/schedule'
 import { commit } from '@/src/commit'
-import { initArray } from '@/src/utils'
+import { initArray, isArray } from '@/src/utils'
 import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from '@/src/vdom'
 
 interface RootNode {
@@ -63,10 +63,12 @@ const createFiberRoot = () => { }
 
 // update
 export const update = (root: RootNode): void => {
-  const { node, props } = root
+  const { node } = root
+  const { type, props, key, ref } = root.props.children[0]
   workInProgressFiber = {
     tag: HOST_ROOT,
-    type: ROOT_NODE,
+    type,
+    key,
     parentNode: node,
     props,
     dirty: true,
@@ -102,6 +104,7 @@ const memo = (fiber: Fiber) => {
 
 const capture = (fiber: Fiber): Fiber | undefined => {
   // 是不是自定义的组件
+  debugger;
   fiber.isComp = isFn(fiber.type)
   if (fiber.isComp) {
     const memoFiber = memo(fiber)
@@ -154,7 +157,9 @@ const updateHook = (fiber: Fiber): void => {
   fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
-    children && reconcileChildren(fiber, [children])
+    children && reconcileChildren(fiber, isArray(children) ? children : [children])
+  } else {
+    fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   }
 }
 
@@ -178,8 +183,7 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   const aCh = fiber.kids || [],
     bCh = (fiber.kids = initArray(children))
   const actions = diff(aCh, bCh)
-  let prev: Fiber | undefined = undefined
-  for (let i = 0, len = bCh.length; i < len; i++) {
+  for (let i = 0, len = bCh.length, prev: Fiber | undefined = undefined; i < len; i++) {
     const child = bCh[i]
     if (typeof child === 'object' && child) {
       const { props, type, key } = child
@@ -188,7 +192,7 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
         tag: 0,
         dirty: true,
         lane: 0,
-        isComp: true
+        isComp: false
       }
       childFiber.action = actions[i]
       if (fiber.lane & TAG.SVG) {
@@ -251,7 +255,7 @@ function diff(a: ComponentChildren, b: ComponentChildren) {
     bIdx[key(b[i])] = i
   }
   // 双指针遍历 a 和 b ，直到有一方结束
-  for (i = j = 0; i != a.length || j != b.length;) {
+  for (i = j = 0; i !== a.length || j !== b.length;) {
     const aElm = a[i],
       bElm = b[j]
     if (b.length <= j) {
@@ -261,12 +265,12 @@ function diff(a: ComponentChildren, b: ComponentChildren) {
       i++
       // 如果 a 元素没有了，说明需要新增，打上新增的标记
     } else if (a.length <= i) {
-      actions.push({ op: TAG.INSERT, elm: bElm, before: a[i] })
+      actions.push({ op: TAG.INSERT, elm: bElm, before: aElm })
       j++
       // 如果两个元素的 key 和 type 类型相等，则进行更新
     } else if (key(aElm) === key(bElm)) {
       // clone(aElm, bElm)
-      actions.push({ op: TAG.UPDATE, elm: bElm, before: a[i] })
+      actions.push({ op: TAG.UPDATE, elm: bElm, before: aElm })
       i++
       j++
     } else {
