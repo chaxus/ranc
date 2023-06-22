@@ -19,8 +19,6 @@ interface RootNode {
   }
 }
 
-const ROOT_NODE = 'div'
-
 /**
  * @description: 页面中显示的内容，reconcile.ts 负责 vdom 转 fiber
  */
