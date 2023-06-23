@@ -29,6 +29,7 @@ const App = () => {
       <Children key="2"></Children>
       <button onClick={() => setState(!state)}>change</button>
       {state ? <h1>0</h1> : <a>none</a>}
+      <p>p:{state}</p>
     </div>
   )
 }

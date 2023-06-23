@@ -1,3 +1,4 @@
+import { getParentNode } from '@/src/reconcile'
 import { TAG } from '@/src/type'
 import type { Attributes, DOMElement, Fiber } from '@/src/type'
 import { kidsRefer, refer } from '@/src/commit'
@@ -20,9 +21,10 @@ const jointIter = <P extends Attributes>(
   bProps = bProps || defaultObj
   Object.keys(aProps).forEach((k) => callback(k, aProps[k], bProps[k]))
   Object.keys(bProps).forEach(
-    (k) =>
-      !Object.hasOwnProperty.bind(aProps, k) &&
-      callback(k, undefined, bProps[k]),
+    (k) => {
+      !Object.hasOwnProperty.call(aProps, k) && callback(k, undefined, bProps[k])
+    }
+
   )
 }
 /**
@@ -78,14 +80,16 @@ export const createElement = (
  * @param {Fiber} fiber
  */
 export const removeElement = (fiber: Fiber): void => {
-  // if (fiber.isComp) {
-  // fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
-  // fiber.kids && fiber.kids?.forEach(removeElement)
-  // } else {
-  fiber.parentNode && fiber.node && fiber.parentNode.removeChild(fiber.node)
-  // fiber.kids && kidsRefer(fiber.kids)
-  fiber.ref && refer(fiber.ref)
-  // }
+  const parentNode = fiber.parentNode || getParentNode(fiber)
+  if (fiber.isComp) {
+    fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
+    // fiber.kids && fiber.kids?.forEach(removeElement)
+  } else {
+    parentNode && fiber.node && parentNode.removeChild(fiber.node)
+    // fiber.kids && kidsRefer(fiber.kids)
+    fiber.ref && refer(fiber.ref)
+    // }
+  }
 }
 /**
  * @description: 插入元素

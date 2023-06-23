@@ -16,7 +16,7 @@ export default defineConfig({
   },
   build: {
     minify: 'terser',
-    sourcemap: true,
+    // sourcemap: true,
     rollupOptions: {
       inlineDynamicImports: true,
       external: ['node:fs', 'fs'],

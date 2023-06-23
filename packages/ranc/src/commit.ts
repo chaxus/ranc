@@ -1,4 +1,4 @@
-import { insertBeforeElement, updateElement } from '@/src/dom'
+import { insertBeforeElement, removeElement, updateElement } from '@/src/dom'
 import { isFn } from '@/src/reconcile'
 import { TAG } from '@/src/type';
 import type { DOMElement, Fiber, FiberRef } from '@/src/type';
@@ -20,6 +20,7 @@ export const commit = (fiber: Fiber): void => {
     }
   }
   if (op & TAG.UPDATE) {
+    // insertBeforeElement(fiber)
     if (fiber.isComp && fiber.child?.action) {
       fiber.child.action.op |= fiber.action.op
     } else {

@@ -106,6 +106,7 @@ export interface VNode<P = {}> {
    * Default value: `-1`
    */
   endTime?: number
+  _original?: number
 }
 
 export type ComponentChild =
@@ -157,16 +158,19 @@ export function createElement(
   }
   if (children?.length > 0) {
     normalizedProps.children = []
-    for(const child of children){
-      if(typeof child === 'function'){
+    children.forEach((child, index) => {
+      if (typeof child === 'function') {
         normalizedProps.children.push(child)
-      } else if(typeof child === 'string'){
-        normalizedProps.children.push({ type: '#text', text:child })
+      } else if (['string','number'].includes(typeof child)) {
+        if (index >= 1 && normalizedProps.children[index - 1].type === '#text') {
+          normalizedProps.children[index - 1].text += child
+        } else {
+          normalizedProps.children.push({ type: '#text', text: child })
+        }
       } else {
         normalizedProps.children.push(child)
       }
-
-    }
+    })
   }
   // If a Component VNode, check for and apply defaultProps
   // Note: type may be undefined in development, must never error here.

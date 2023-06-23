@@ -28,7 +28,7 @@ const App = () => {
     key: "2"
   }), createElement("button", {
     onClick: () => setState(!state)
-  }, "change"), state ? createElement("h1", null, "0") : createElement("a", null, "none"));
+  }, "change"), state ? createElement("h1", null, "0") : createElement("a", null, "none"), createElement("p", null, "p:", state));
 };
 const Children = () => {
   return createElement("div", {
