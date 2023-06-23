@@ -86,6 +86,7 @@ interface RancContext<T> extends Context<T> { }
 
 export interface VNode<P = {}> {
   type: ComponentType<P> | string
+  text?: string,
   props: P & { children: ComponentChildren }
   key: Key
   /**
@@ -145,7 +146,7 @@ export function createElement(
   props: Record<string, string | number | null> | null | undefined = {},
   ...children: Array<ComponentChildren>
 ): VNode {
-  const normalizedProps: Record<string, unknown> = {}
+  const normalizedProps: Record<string, any> = {}
   let key: string | number | null = null, ref: any = null
   if (props) {
     Object.keys(props).forEach(i => {
@@ -155,7 +156,17 @@ export function createElement(
     })
   }
   if (children?.length > 0) {
-    normalizedProps.children = children
+    normalizedProps.children = []
+    for(const child of children){
+      if(typeof child === 'function'){
+        normalizedProps.children.push(child)
+      } else if(typeof child === 'string'){
+        normalizedProps.children.push({ type: '#text', text:child })
+      } else {
+        normalizedProps.children.push(child)
+      }
+
+    }
   }
   // If a Component VNode, check for and apply defaultProps
   // Note: type may be undefined in development, must never error here.

@@ -232,7 +232,7 @@ const updateMemo = (nextCreate, deps) => {
 
 // useCallback 的实现是分为 mountCallback 和 updateCallback 的：
 
-// ook 的数据是存放在 fiber 的 memoizedState 属性的链表上的，
+// hook 的数据是存放在 fiber 的 memoizedState 属性的链表上的，
 
 // 每个 hook 对应一个节点，
 

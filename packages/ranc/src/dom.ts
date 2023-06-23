@@ -63,9 +63,8 @@ export const createElement = (
   fiber: Fiber,
 ): Text | HTMLElement | SVGElement | undefined => {
   let dom = undefined
-  debugger;
   if (fiber.type === '#text') {
-    dom = document.createTextNode('')
+    dom = document.createTextNode(fiber.text || '')
   } else if (fiber.lane & TAG.SVG && fiber.type === 'svg') {
     dom = document.createElementNS(SVG_ORG, fiber.type)
   } else if (isStr(fiber.type)) {

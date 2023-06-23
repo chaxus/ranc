@@ -12,16 +12,15 @@ export const commit = (fiber: Fiber): void => {
     return
   }
   const { op } = fiber.action || {}
-  console.log('fiber', fiber)
   if (op & TAG.INSERT || op & TAG.MOVE) {
-    if (fiber.isComp && fiber.child) {
+    if (fiber.isComp && fiber.child?.action) {
       fiber.child.action.op |= fiber.action.op
     } else {
       insertBeforeElement(fiber)
     }
   }
   if (op & TAG.UPDATE) {
-    if (fiber.isComp && fiber.child) {
+    if (fiber.isComp && fiber.child?.action) {
       fiber.child.action.op |= fiber.action.op
     } else {
       fiber.node && updateElement(fiber.node, fiber.old?.props || {}, fiber.props || {})
@@ -29,11 +28,9 @@ export const commit = (fiber: Fiber): void => {
   }
 
   fiber.ref && refer(fiber.ref, fiber.node)
-
   fiber.action = null
-
-  fiber.child && commit(fiber.child)
-  fiber.sibling && commit(fiber.sibling)
+  fiber.child && fiber.action && commit(fiber.child)
+  // fiber.sibling && commit(fiber.sibling)
 }
 
 export const refer = (ref: FiberRef, dom?: DOMElement): void => {
