@@ -1,1 +1,1 @@
-- ranc: [Tiny UI JSX compiler with Hook for user interfaces](https://github.com/chaxus/ranc/tree/main/packages/ranc/readme.md)
+- ranc: [Tiny UI JSX compiler with Hook for user interfaces](https://github.com/chaxus/ranc/blob/main/packages/ranc/readme.md)
