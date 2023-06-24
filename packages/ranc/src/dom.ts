@@ -1,113 +1,108 @@
-import type { Attributes, DOM, FC, Fiber, FreElement } from './type'
-import { TAG } from './reconcile'
-import { initArray, isArr, isNothing, isStr } from './utils'
+import { getParentNode } from '@/src/reconcile'
+import { TAG } from '@/src/type'
+import type { Attributes, DOMElement, Fiber } from '@/src/type'
+import { kidsRefer, refer } from '@/src/commit'
+import { isNothing, isStr } from '@/src/utils'
+
+const SVG_ORG = 'http://www.w3.org/2000/svg'
+const CHILDREN = 'children'
+const STYLE = 'style'
+const O = 'o'
+const N = 'n'
 
 const defaultObj = {}
 
 const jointIter = <P extends Attributes>(
-    aProps: Partial<P>,
-    bProps: P,
-    callback: (name: string, a: any, b: any) => void
+  aProps: Partial<P> & Record<string, any>,
+  bProps: Partial<P> & Record<string, any>,
+  callback: (name: string, a: any, b: any) => void,
 ) => {
-    aProps = aProps || defaultObj
-    bProps = bProps || defaultObj
-    Object.keys(aProps).forEach(k => callback(k, aProps[k], bProps[k]))
-    Object.keys(bProps).forEach(k => !Object.hasOwnProperty.bind(aProps, k) && callback(k, undefined, bProps[k]))
-}
-
-export const updateElement = <P extends Attributes>(dom: DOM, aProps: Partial<P>, bProps: P): void => {
-    jointIter(aProps, bProps, (name, a, b) => {
-        if (a === b || name === 'children') {
-        } else if (name === 'style' && !isStr(b)) {
-            jointIter(a, b, (styleKey, aStyle, bStyle) => {
-                if (aStyle !== bStyle) {
-                    dom[name][styleKey] = bStyle || ''
-                }
-            })
-        } else if (name[0] === 'o' && name[1] === 'n') {
-            name = name.slice(2).toLowerCase()
-            if (a) dom.removeEventListener(name, a)
-            dom.addEventListener(name, b)
-        } else if (name in dom && !(dom instanceof SVGElement)) {
-            dom[name] = b || ''
-        } else if (isNothing(b)) {
-            !(dom instanceof Text) && dom.removeAttribute(name)
-        } else {
-            !(dom instanceof Text) && dom.setAttribute(name, b)
-        }
-    })
-}
-
-export const createElement = (fiber: Fiber): HTMLElement | SVGElement | Text | false => {
-    const dom =
-        fiber.type === '#text'
-            ? document.createTextNode('')
-            : fiber.lane & TAG.SVG && isStr(fiber.type)
-                ? document.createElementNS(
-                    'http://www.w3.org/2000/svg',
-                    fiber.type
-                )
-                : isStr(fiber.type) && document.createElement(fiber.type)
-    dom && updateElement(dom, {}, fiber.props)
-    return dom
-}
-
-export const removeElement = (fiber: Fiber): void => {
-    if (fiber.isComp) {
-        fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
-        fiber.kids.forEach(removeElement)
-    } else {
-        fiber.parentNode.removeChild(fiber.node)
-        kidsRefer(fiber.kids)
-        refer(fiber.ref, null)
+  aProps = aProps || defaultObj
+  bProps = bProps || defaultObj
+  Object.keys(aProps).forEach((k) => callback(k, aProps[k], bProps[k]))
+  Object.keys(bProps).forEach(
+    (k) => {
+      !Object.hasOwnProperty.call(aProps, k) && callback(k, undefined, bProps[k])
     }
+
+  )
+}
+/**
+ * @description: 更新元素
+ * @param {*} P
+ */
+export const updateElement = <P = {}>(
+  dom: DOMElement,
+  aProps: Partial<P>,
+  bProps: Partial<P & Record<string, any>>,
+): void => {
+  jointIter(aProps, bProps, (name, a, b) => {
+    if (a === b || name === CHILDREN) {
+    } else if (name === STYLE && !isStr(b)) {
+      jointIter(a, b, (styleKey, aStyle, bStyle) => {
+        if (aStyle !== bStyle) {
+          dom[name][styleKey] = bStyle || ''
+        }
+      })
+    } else if (name[0] === O && name[1] === N) {
+      name = name.slice(2).toLowerCase()
+      if (a) dom.removeEventListener(name, a)
+      dom.addEventListener(name, b)
+    } else if (name in dom && !(dom instanceof SVGElement)) {
+      dom[name] = b || ''
+    } else if (isNothing(b)) {
+      !(dom instanceof Text) && dom.removeAttribute(name)
+    } else {
+      !(dom instanceof Text) && dom.setAttribute(name, b)
+    }
+  })
+}
+/**
+ * @description: 创建元素
+ * @param {Fiber} fiber
+ */
+export const createElement = (
+  fiber: Fiber,
+): Text | HTMLElement | SVGElement | undefined => {
+  let dom = undefined
+  if (fiber.type === '#text') {
+    dom = document.createTextNode(fiber.text || '')
+  } else if (fiber.lane & TAG.SVG && fiber.type === 'svg') {
+    dom = document.createElementNS(SVG_ORG, fiber.type)
+  } else if (isStr(fiber.type)) {
+    dom = document.createElement(fiber.type)
+  }
+  dom && updateElement(dom, {}, fiber.props || {})
+  return dom
+}
+/**
+ * @description: 删除元素
+ * @param {Fiber} fiber
+ */
+export const removeElement = (fiber: Fiber): void => {
+  const parentNode = fiber.parentNode || getParentNode(fiber)
+  if (fiber.isComp) {
+    fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
+    // fiber.kids && fiber.kids?.forEach(removeElement)
+  } else {
+    parentNode && fiber.node && parentNode.removeChild(fiber.node)
+    // fiber.kids && kidsRefer(fiber.kids)
+    fiber.ref && refer(fiber.ref)
+    // }
+  }
+}
+/**
+ * @description: 插入元素
+ * @param {Fiber} fiber
+ * @return {*}
+ */
+export const insertBeforeElement = (fiber: Fiber): void => {
+  const { before } = fiber.action || {}
+  fiber.parentNode && fiber.node && fiber.parentNode.insertBefore(fiber.node, before?.node || null)
 }
 
-
-// for jsx2
-export const h = (type, props: any, ...kids) => {
-    props = props || {}
-    kids = flat(initArray(props.children || kids))
-
-    if (kids.length) props.children = kids.length === 1 ? kids[0] : kids
-
-    const key = props.key || null
-    const ref = props.ref || null
-
-    if (key) props.key = undefined
-    if (ref) props.ref = undefined
-
-    return createVnode(type, props, key, ref)
-}
-
-const some = (x: unknown) => x != null && x !== true && x !== false
-
-const flat = (arr: any[], target = []) => {
-    arr.forEach(v => {
-        isArr(v)
-            ? flat(v, target)
-            : some(v) && target.push(isStr(v) ? createText(v) : v)
-    })
-    return target
-}
-
-export const createVnode = (type: string, props: any, key: string, ref: any) => ({
-    type,
-    props,
-    key,
-    ref,
-})
-
-export const createText = (vnode: any) =>
-    ({ type: '#text', props: { nodeValue: vnode + '' } } as FreElement)
-
-export function Fragment(props) {
-    return props.children
-}
-
-export function memo<T extends object>(fn: FC<T>, compare?: FC<T>['shouldUpdate']) {
-    fn.memo = true
-    fn.shouldUpdate = compare
-    return fn
-}
-
+// TODO:
+// 1.应该在 diff 生成 actions 之前，处理 vdom 成 fiber
+// 2.createElement 的第三个参数，可能是一个表达式
+// 3.createElement 的第一个参数，可能是一个函数，表示子组件
+// 4.渲染文本

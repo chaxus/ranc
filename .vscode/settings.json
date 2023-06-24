@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
         "preinstall",
-        "ranc"
+        "ranc",
+        "Renderable",
+        "vdom",
+        "vnode"
     ]
 }

@@ -1,0 +1,1 @@
+pnpm -F ranc test
