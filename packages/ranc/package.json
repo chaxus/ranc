@@ -1,8 +1,8 @@
 {
   "name": "ranc",
-  "version": "0.0.1-alpha",
-  "description": "lib",
-  "main": "dist/index.umd.cjs",
+  "version": "0.0.3-alpha",
+  "description": "Tiny UI JSX compiler with Hook for user interfaces",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
   "type": "module",
   "types": "dist/index.d.ts",
@@ -13,8 +13,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.umd.cjs"
+      "require": "./dist/index.cjs"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaxus/ranc"
   },
   "files": [
     "/dist"
@@ -24,9 +28,9 @@
     "test": "vitest",
     "dev": "vite",
     "prepublish": "npm run build",
-    "demo": "sh ./bin/vdom.sh"
+    "example": "sh ./bin/vdom.sh"
   },
-  "keywords": [],
+  "keywords": ["jsx","hook"],
   "author": "",
   "license": "ISC",
   "devDependencies": {

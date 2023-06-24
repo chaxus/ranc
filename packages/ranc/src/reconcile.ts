@@ -46,7 +46,7 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
       alternate: currentFiber,
     }
     update(workInProgressFiber)
-    console.log(workInProgressFiber)
+    // console.log(workInProgressFiber)
     // fiberRootNode = workInProgressFiber
   }
 }
@@ -88,6 +88,7 @@ const dfs = (fiber: Fiber) => {
 }
 
 // update
+// TODO：更新 state 后，新老 fiber 的对比
 export const update = (fiber: Fiber): void => {
   if (workInProgressFiber && fiber.child) {
     if (fiber.child) {

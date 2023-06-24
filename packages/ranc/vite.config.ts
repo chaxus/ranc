@@ -1,4 +1,4 @@
-import path, { resolve } from 'node:path'
+import path, { format, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
@@ -9,10 +9,9 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   esbuild: {
-    jsxFactory: 'h',
+    jsxFactory: 'jsx',
     jsxFragment: 'Fragment',
-    target: 'es2020',
-    format: 'esm'
+    jsxInject: 'import { createElement as jsx, createElement as h, Fragment } from "@/src/vdom"',
   },
   build: {
     minify: 'terser',
@@ -22,10 +21,9 @@ export default defineConfig({
       external: ['node:fs', 'fs'],
     },
     lib: {
-      entry: './index.ts',
+      entry: ['index.ts', 'jsx-runtime', 'jsx-dev-runtime'],
       name: 'ranc',
-      fileName: 'index',
-      formats: ['es', 'umd'],
+      formats: ['es','cjs'],
     },
   },
   resolve: {

@@ -16,8 +16,9 @@
     "baseUrl": ".",
     "experimentalDecorators": true,
     "jsx": "preserve",
-    "jsxFactory": "h",
+    "jsxFactory": "jsx",
     "jsxFragmentFactory": "Fragment",
+    "jsxImportSource":"@",
     "paths": {
       "@/*": ["./*"],
     }

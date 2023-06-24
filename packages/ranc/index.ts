@@ -1,4 +1,4 @@
-export { createElement, Fragment, createElement as h, createRef } from '@/src/vdom'
+export { createElement, Fragment, createElement as h, createElement as jsx, createRef } from '@/src/vdom'
 export { render } from '@/src/reconcile'
 export {
   useState,
@@ -14,6 +14,7 @@ export {
 } from '@/src/hook'
 export { shouldYield, schedule as startTranstion } from '@/src/schedule'
 export * from '@/src/type'
+
 
 /**
  * @description: new code
