@@ -1,4 +1,3 @@
-import { _catchError, slice } from '@/src/utils'
 
 type Key = string | number | any
 
@@ -94,19 +93,7 @@ export interface VNode<P = {}> {
    * with popular react libs we define it as optional too
    */
   ref?: Ref<any> | null
-  /**
-   * The time this `vnode` started rendering. Will only be set when
-   * the devtools are attached.
-   * Default value: `0`
-   */
-  startTime?: number
-  /**
-   * The time that the rendering of this `vnode` was completed. Will only be
-   * set when the devtools are attached.
-   * Default value: `-1`
-   */
-  endTime?: number
-  _original?: number
+  _original?: number // 计数标记
 }
 
 export type ComponentChild =
@@ -127,10 +114,6 @@ interface Attributes {
 
 export type RenderableProps<P, RefType = any> = P &
   Readonly<Attributes & { children?: ComponentChildren; ref?: Ref<RefType> }>
-
-const options: any = {
-  _catchError,
-}
 
 let vnodeId = 0
 
@@ -172,17 +155,8 @@ export function createElement(
       }
     })
   }
-  // If a Component VNode, check for and apply defaultProps
-  // Note: type may be undefined in development, must never error here.
-  // if (typeof type === 'function' && type.defaultProps != null) {
-  //   for (const i in type.defaultProps) {
-  //     if (normalizedProps[i] === undefined) {
-  //       normalizedProps[i] = type.defaultProps[i]
-  //     }
-  //   }
-  // }
 
-  return createVNode(type, normalizedProps, key, ref, null)
+  return createVNode(type, normalizedProps, key, ref)
 }
 
 /**
@@ -202,7 +176,6 @@ export function createVNode(
   props: object | string | number | null,
   key: string | number | null,
   ref: VNode['ref'],
-  original: null,
 ): VNode<any> {
   // V8 seems to be better at detecting type shapes if the object is allocated from the same call site
   // Do not inline into createElement and coerceToVNode!
@@ -211,23 +184,8 @@ export function createVNode(
     props,
     key,
     ref,
-    _children: null,
-    _parent: null,
-    _depth: 0,
-    _dom: null,
-    // _nextDom must be initialized to undefined b/c it will eventually
-    // be set to dom.nextSibling which can return `null` and it is important
-    // to be able to distinguish between an uninitialized _nextDom and
-    // a _nextDom that has been set to `null`
-    _nextDom: undefined,
-    _component: null,
-    _hydrating: null,
-    constructor: undefined,
-    _original: original == null ? ++vnodeId : original,
+    _original: ++vnodeId,
   }
-
-  // Only invoke the vnode hook if this was *not* a direct copy:
-  if (original == null && options.vnode != null) options.vnode(vnode)
 
   return vnode
 }
