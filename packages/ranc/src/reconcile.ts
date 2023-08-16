@@ -40,7 +40,7 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
       tag: HOST_ROOT,
       type: vnode.type,
       lane: TAG.UPDATE,
-      dirty: true,
+      dirty: true, // 当调用setState的时候，React将标记其为dirty，到每一个事件循环结束，React会检查所有标记的dirty的component进行重绘。
       isComp: false,
       key: getCurrentKey(),
       alternate: currentFiber,
