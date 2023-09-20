@@ -71,6 +71,7 @@ const createFiber = () => { }
  */
 const createFiberRoot = () => { }
 
+<<<<<<< HEAD
 const dfs = (fiber: Fiber) => {
   if (fiber.sibling) {
     if (typeof fiber.sibling.type === 'string') {
@@ -78,6 +79,20 @@ const dfs = (fiber: Fiber) => {
     } else {
       dfs(fiber.sibling)
     }
+=======
+// update
+export const update = (root: RootNode): void => {
+  const { node, props } = root
+  workInProgressFiber = {
+    tag: HOST_ROOT,
+    type: ROOT_NODE,
+    parentNode: node,
+    props,
+    dirty: true, // 当调用setState的时候，React将标记其为dirty，到每一个事件循环结束，React会检查所有标记的dirty的component进行重绘。
+    lane: TAG.UPDATE,
+    isComp: false,
+    alternate: currentFiber
+>>>>>>> d3cce6b (feat: update signal)
   }
   if (fiber.child) {
     if (typeof fiber.child.type === 'string') {
@@ -104,6 +119,7 @@ export const update = (fiber: Fiber): void => {
   // 将优先级高的任务推进 reconcile
   // reconcile 将 vdom 转换成 fiber，新的 VDOM 和 旧的 Fiber 进行 diff 对比，并同时打上进行什么操作的 tag
   // render 渲染成 dom
+  schedule(() => reconcile(workInProgressFiber))
 }
 
 const reconcile = (fiber?: Fiber): boolean | Function => {
@@ -114,6 +130,7 @@ const reconcile = (fiber?: Fiber): boolean | Function => {
 }
 
 const memo = (fiber: Fiber) => {
+  // ÷÷
   if (fiber.memo && fiber.old?.props) {
     const scu = fiber.shouldUpdate || shouldUpdate
     // 当前组件是否需要更新，不需要的话返回兄弟节点
@@ -182,6 +199,7 @@ const updateHook = (fiber: Fiber): void => {
 
 const updateHost = (fiber: Fiber): void => {
   fiber.parentNode = getParentNode(fiber)
+  currentFiber = fiber
   if (!fiber.node) {
     const flag = createElement(fiber)
     if (flag) {
