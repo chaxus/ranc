@@ -1,5 +1,58 @@
-
 const context: Function[] = []
+
+interface Options<T = unknown> {
+  // 判断什么时候更新，对比的方法
+  equals?: boolean | ((prev: T | undefined, next: T) => boolean)
+  // 更新的名称，更新的函数
+  update: { name: string; exec: Function }
+}
+
+export class Signal {
+  context: Map<any, any>
+  constructor() {
+    this.context = new Map()
+  }
+  createSignal = <T = unknown>(
+    value: T,
+    options: Options<T>,
+  ): [() => T | undefined, (newValue: T) => void] => {
+    const signal = {
+      value,
+      subscribers: new Set<Function>(),
+      comparator: options?.equals,
+    }
+    const { update } = options
+    this.context.set(update.name, update.exec)
+    const getter = () => {
+      // 订阅，传入更新事件
+      const running = this.context.get(update.name)
+      if (running) {
+        signal.subscribers.add(running)
+      }
+      return signal.value
+    }
+    const updateSignal = (newValue: T) => {
+      if (signal.value !== newValue) {
+        signal.value = newValue
+        signal.subscribers.forEach((subscriber) => subscriber())
+      }
+    }
+    const setter = (newValue: T) => {
+      const { comparator } = signal
+      if (comparator instanceof Function) {
+        return !comparator(signal.value, newValue) && updateSignal(newValue)
+      }
+      if (comparator === undefined) {
+        if (signal.value !== newValue) {
+          updateSignal(newValue)
+        }
+      } else {
+        !comparator && updateSignal(newValue)
+      }
+    }
+    return [getter, setter]
+  }
+}
 
 /**
  * @description: 仅提供 value 时，（默认）是响应式的。
@@ -18,7 +71,7 @@ export const createSignal = <T = unknown>(
     comparator: options?.equals,
   }
   const getter = () => {
-    // 订阅
+    // 订阅，传入更新事件
     const running = context[context.length - 1]
     if (running) {
       signal.subscribers.add(running)
@@ -85,4 +138,3 @@ export const createMemo = <T>(
   }
   return memo
 }
-

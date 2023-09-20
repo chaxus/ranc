@@ -183,10 +183,8 @@ export function createVNode(
     type,
     props,
     key,
-    ref,
-    _original: ++vnodeId,
+    ref
   }
-
   return vnode
 }
 
