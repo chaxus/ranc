@@ -15,7 +15,11 @@ import type {
 const EMPTY_ARR: [] = []
 
 let cursor = 0
-
+/**
+ * @description: hook 复原
+ * @param {*} void
+ * @return {*}
+ */
 export const resetCursor = (): void => {
     cursor = 0
 }
