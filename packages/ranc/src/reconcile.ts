@@ -71,7 +71,6 @@ const createFiber = () => { }
  */
 const createFiberRoot = () => { }
 
-<<<<<<< HEAD
 const dfs = (fiber: Fiber) => {
   if (fiber.sibling) {
     if (typeof fiber.sibling.type === 'string') {
@@ -79,20 +78,6 @@ const dfs = (fiber: Fiber) => {
     } else {
       dfs(fiber.sibling)
     }
-=======
-// update
-export const update = (root: RootNode): void => {
-  const { node, props } = root
-  workInProgressFiber = {
-    tag: HOST_ROOT,
-    type: ROOT_NODE,
-    parentNode: node,
-    props,
-    dirty: true, // 当调用setState的时候，React将标记其为dirty，到每一个事件循环结束，React会检查所有标记的dirty的component进行重绘。
-    lane: TAG.UPDATE,
-    isComp: false,
-    alternate: currentFiber
->>>>>>> d3cce6b (feat: update signal)
   }
   if (fiber.child) {
     if (typeof fiber.child.type === 'string') {
