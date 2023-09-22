@@ -22,10 +22,15 @@ export class Signal {
       comparator: options?.equals,
     }
     const { update } = options
-    this.context.set(update.name, update.exec)
+    const { name, exec } = update
+    if (this.context.has(name)) {
+      console.warn(`duplicate name: ${name}, please check`)
+    } else {
+      this.context.set(name, exec)
+    }
     const getter = () => {
       // 订阅，传入更新事件
-      const running = this.context.get(update.name)
+      const running = this.context.get(name)
       if (running) {
         signal.subscribers.add(running)
       }
