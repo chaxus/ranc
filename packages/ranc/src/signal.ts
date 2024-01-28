@@ -71,7 +71,8 @@ export const createSignal = <T = unknown>(
     comparator: options?.equals,
   }
   const getter = () => {
-    // 订阅，传入更新事件
+    // 订阅
+    // runnings 是更新当前组件的方法，
     const running = context[context.length - 1]
     if (running) {
       signal.subscribers.add(running)

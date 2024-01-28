@@ -3,7 +3,7 @@
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: chaxus nouo18@163.com
- * @LastEditTime: 2023-06-23 22:52:47
+ * @LastEditTime: 2023-08-17 21:17:43
  */
 
 import type { ComponentChild, ComponentChildren, ComponentType, VNode } from "@/src/vdom"
@@ -106,7 +106,7 @@ export interface Fiber<P = {}> {
 export interface FiberAction {
   op: TAG
   elm?: ComponentChild
-  before?: ComponentChild | Fiber
+  from?: ComponentChild | Fiber
 }
 
 // Hook

@@ -23,7 +23,7 @@ const Child = () => {
   const change = () => {
     setState(state + 1)
   }
-  return <h2 onClick={change}>child:{state}</h2>
+  return <button onClick={change}>child:{state}</button>
 }
 
 render(<App />, document.getElementById("app"))

@@ -20,7 +20,6 @@ export const commit = (fiber: Fiber): void => {
     }
   }
   if (op & TAG.UPDATE) {
-    // insertBeforeElement(fiber)
     if (fiber.isComp && fiber.child?.action) {
       fiber.child.action.op |= fiber.action.op
     } else {

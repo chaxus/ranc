@@ -14,6 +14,10 @@ import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from
 
 let key = 0
 
+const resetKey = () => {
+  key = 0
+}
+
 export const getCurrentKey = (): number => {
   return key++
 }
@@ -27,6 +31,7 @@ let currentFiber: Fiber
  * @return {*}
  */
 let workInProgressFiber: Fiber
+
 /**
  * @description: 页面中渲染的 fiber 树
  * @return {*}
@@ -35,6 +40,7 @@ let fiberRootNode: Fiber
 
 export const render = (vnode: VNode, node: HTMLElement | null): void => {
   if (vnode && node) {
+    resetKey()
     workInProgressFiber = {
       parentNode: node,
       tag: HOST_ROOT,
@@ -43,11 +49,14 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
       dirty: true, // 当调用setState的时候，React将标记其为dirty，到每一个事件循环结束，React会检查所有标记的dirty的component进行重绘。
       isComp: false,
       key: getCurrentKey(),
-      alternate: currentFiber,
+      alternate: fiberRootNode,
+    }
+    if (!fiberRootNode) {
+      workInProgressFiber.alternate = { ...workInProgressFiber }
     }
     update(workInProgressFiber)
-    // console.log(workInProgressFiber)
-    // fiberRootNode = workInProgressFiber
+    // 缓存渲染的结果
+    fiberRootNode = workInProgressFiber
   }
 }
 /**
@@ -73,32 +82,42 @@ const createFiberRoot = () => { }
 
 const dfs = (fiber: Fiber) => {
   if (fiber.sibling) {
-    if (typeof fiber.sibling.type === 'string') {
+    fiber.sibling.alternate = fiber.alternate?.sibling
+    if (typeof fiber.sibling.type === 'string' && isSameFiber(fiber.sibling) !== isSameFiber(fiber.sibling.alternate)) {
       removeElement(fiber.sibling)
     } else {
       dfs(fiber.sibling)
     }
   }
   if (fiber.child) {
-    if (typeof fiber.child.type === 'string') {
+    fiber.child.alternate = fiber.alternate?.child
+    if (typeof fiber.child.type === 'string' && isSameFiber(fiber.child) !== isSameFiber(fiber.child.alternate)) {
       removeElement(fiber.child)
     }
     dfs(fiber.child)
   }
 }
 
+const isSameFiber = (fiber?: Fiber) => {
+  if (fiber) {
+    const { key = '', type = '', tag } = fiber
+    return `${key}${type}${tag}`
+  }
+  return false
+}
+
 // update
 // TODO：更新 state 后，新老 fiber 的对比
 export const update = (fiber: Fiber): void => {
-  if (workInProgressFiber && fiber.child) {
-    if (fiber.child) {
-      if (typeof fiber.child.type === 'string') {
-        removeElement(fiber.child)
-      } else {
-        dfs(fiber.child)
-      }
-    }
-  }
+  console.log('fiber', fiber)
+  // if (workInProgressFiber && fiber.child) {
+  // fiber.child.alternate = fiber.alternate?.child
+  // const { alternate } = fiber.child
+  // if (typeof fiber.child.type === 'string' && isSameFiber(fiber.child) !== isSameFiber(alternate)) {
+  //   removeElement(fiber.child)
+  // }
+  // dfs(fiber.child)
+  // }
   schedule(() => reconcile(fiber))
   // schedule 是调度器
   // 将优先级高的任务推进 reconcile
@@ -127,6 +146,8 @@ const memo = (fiber: Fiber) => {
 }
 
 const capture = (fiber: Fiber): Fiber | undefined => {
+  debugger;
+  currentFiber = fiber
   // 是不是自定义的组件
   fiber.isComp = isFn(fiber.type)
   if (fiber.isComp) {
@@ -138,7 +159,14 @@ const capture = (fiber: Fiber): Fiber | undefined => {
   } else {
     updateHost(fiber)
   }
-  if (fiber.child) return fiber.child
+  if (fiber.child) {
+    if (!fiberRootNode && fiber.alternate) {
+      fiber.alternate.child = { ...fiber.child }
+      fiber.alternate.child.parent = fiber.alternate
+    }
+    fiber.child.alternate = fiber.alternate?.child
+    return fiber.child
+  }
   const sibling = getSibling(fiber)
   return sibling
 }
@@ -150,7 +178,16 @@ const getSibling = (fiber?: Fiber): Fiber | undefined => {
       fiber.dirty = false
       commit(fiber)
     }
-    if (fiber.sibling) return fiber.sibling
+    if (fiber.sibling) {
+      if (!fiberRootNode) {
+        fiber.sibling.alternate = { ...fiber.sibling }
+      }
+      fiber.sibling.alternate = fiber.alternate?.sibling
+      return fiber.sibling
+    }
+    if (fiber.parent) {
+      fiber.parent.alternate = fiber.alternate?.parent
+    }
     fiber = fiber.parent
   }
   return undefined
@@ -175,7 +212,6 @@ const shouldUpdate = (
 
 const updateHook = (fiber: Fiber): void => {
   resetCursor()
-  currentFiber = fiber
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
     children && reconcileChildren(fiber, isArray(children) ? children : [children])
@@ -212,23 +248,25 @@ const noopStr = (x: any): string => {
 
 const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   const aCh = fiber.kids || [],
-    bCh = (fiber.kids = initArray(children))
-  const actions = diff(aCh, fiber)
-  for (let i = 0, len = bCh.length, prev: Fiber | undefined = undefined; i < len; i++) {
-    const child = bCh[i]
-    if (typeof child === 'object' && child) {
-      const { props, type, text } = child
+    bCh = (fiber.kids = children)
+  const actions = diff(aCh, bCh)
+  let child = fiber.alternate?.child
+  for (let i = 0, len = actions.length, prev: Fiber | undefined = undefined; i < len; i++) {
+    const { op, elm, from } = actions[i]
+    if (typeof elm === 'object' && elm) {
+      const { props, type, text } = elm
       const childFiber: Fiber = {
         props,
         type,
         tag: 0,
         dirty: true,
-        lane: 0,
-        key: `${noopStr(child.key)}${getCurrentKey()}`,
+        lane: op,
+        key: `${noopStr(elm.key)}${getCurrentKey()}`,
         text,
-        isComp: false,
+        isComp: isFn(type),
       }
       childFiber.action = actions[i]
+      childFiber.alternate = child
       if (fiber.lane & TAG.SVG) {
         childFiber.lane |= TAG.SVG
       }
@@ -236,6 +274,8 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
       if (i > 0 && prev) {
         // 构建 fiber 链表
         prev.sibling = childFiber
+        // 如果有老的fiber，执行老的
+        child = child?.sibling
       } else {
         fiber.child = childFiber
       }
@@ -268,8 +308,7 @@ const side = (effects?: Effect[]): void => {
 // a 是原来的数组
 // b 是新的数组
 // 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
-function diff(a: ComponentChildren, fiber: Fiber) {
-  const b = fiber.kids || []
+function diff(a: ComponentChildren, b: ComponentChildren) {
   const actions: Array<FiberAction> = [],
     aIdx: Record<string, number> = {},
     bIdx: Record<string, number> = {},
@@ -289,24 +328,20 @@ function diff(a: ComponentChildren, fiber: Fiber) {
   for (i = 0; i < b.length; i++) {
     bIdx[key(b[i])] = i
   }
-  // 双指针遍历 a 和 b ，直到有一方结束
+  // 双指针遍历 a 和 b ，直到两个都结束
   for (i = j = 0; i !== a.length || j !== b.length;) {
-    const aElm = a[i],
-      bElm = b[j]
-    if (b.length <= j) {
+    const aElm = a[i], bElm = b[j]
+    if (b.length <= i) {
       // 移除 a 元素，i++
       actions.push({ op: TAG.REMOVE, elm: aElm })
-      // removeElement(a[i])
       i++
       // 如果 a 元素没有了，说明需要新增，打上新增的标记
-    } else if (a.length <= i) {
-      actions.push({ op: TAG.INSERT, elm: bElm, before: fiber.sibling })
+    } else if (a.length <= j) {
+      actions.push({ op: TAG.INSERT, elm: bElm, from: aElm })
       j++
       // 如果两个元素的 key 和 type 类型相等，则进行更新
     } else if (key(aElm) === key(bElm)) {
-      // clone(aElm, bElm)
-      actions.push({ op: TAG.UPDATE, elm: bElm, before: fiber.sibling })
-      // actions.push({ op: TAG.INSERT, elm: bElm, before: fiber.sibling })
+      actions.push({ op: TAG.UPDATE, elm: bElm, from: aElm })
       i++
       j++
     } else {
@@ -315,16 +350,14 @@ function diff(a: ComponentChildren, fiber: Fiber) {
       // b 元素是否在 a 元素中，不在即新增，在即复用
       const wantedElmInOld = aIdx[key(bElm)]
       if (curElmInNew === undefined) {
-        // actions.push({ op: TAG.REMOVE, elm: aElm, })
-        // removeElement(a[i])
+        actions.push({ op: TAG.REMOVE, elm: aElm })
         i++
       } else if (wantedElmInOld === undefined) {
-        actions.push({ op: TAG.INSERT, elm: bElm, before: a[i] })
+        actions.push({ op: TAG.INSERT, elm: bElm, from: aElm })
         j++
       } else {
-        // clone(a[wantedElmInOld], bElm)
-        actions.push({ op: TAG.MOVE, elm: a[wantedElmInOld], before: a[i] })
-        delete a[wantedElmInOld]
+        actions.push({ op: TAG.MOVE, elm: bElm, from: aElm })
+        i++
         j++
       }
     }
