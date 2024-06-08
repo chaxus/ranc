@@ -1,9 +1,9 @@
 /*
  * @Author: ran
  * @Date: 2023-06-05 10:29:01
- * @description: 分为几块类型：真实的DOM，虚拟DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
+ * @description: 分为几块类型：真实的 DOM，虚拟 DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: chaxus nouo18@163.com
- * @LastEditTime: 2023-08-17 21:17:43
+ * @LastEditTime: 2024-06-08 21:51:28
  */
 
 import type { ComponentChild, ComponentChildren, ComponentType, VNode } from "@/src/vdom"
@@ -67,18 +67,18 @@ export type WorkTag =
   | typeof HostText
 
 export const FunctionComponent = 0
-export const HOST_ROOT = 3 // Root Fiber 可以理解为根元素 ， 通过reactDom.render()产生的根元素
+export const HOST_ROOT = 3 // Root Fiber 可以理解为根元素，通过 reactDom.render() 产生的根元素
 
-export const HostComponent = 5 // dom元素 比如 <div></div>
+export const HostComponent = 5 // dom 元素 比如 <div></div>
 export const HostText = 6 // 文本类型 比如：<div>123</div>
 
 export interface Fiber<P = {}> {
-  tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的tag）
+  tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的 tag）
   key?: string | number
   text?:string,
-  type: string | ComponentType<P> // 与fiber关联的功能或类，如<div>,指向对应的类或函数
+  type: string | ComponentType<P> // 与 fiber 关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
-  node?: DOMElement // 真实的DOM节点
+  node?: DOMElement // 真实的 DOM 节点
   kids?: ComponentChildren // 子节点数组
   dirty: boolean
   old?: Fiber<P> 

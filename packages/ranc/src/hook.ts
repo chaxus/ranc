@@ -213,7 +213,7 @@ export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
 //     return hook
 // }
 
-// // update 的时候会判断依赖有没有变, 
+// // update 的时候会判断依赖有没有变，
 // // 如果依赖数组都没变，那就返回之前的值，否则创建新的值更新到 hook.memoizedState。
 // const updateMemo = (nextCreate, deps) => {
 //     const hook = mountWorkInProgressHook()
@@ -241,7 +241,7 @@ export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
 
 // // 第一次执行 useXxx 的 hook 会走 mountXxx 的逻辑来创建 hook 链表，之后会走 updateXxx 的逻辑。
 
-// // useEffect同样分了 mountEffect 和 updateEffect 两个阶段：
+// // useEffect 同样分了 mountEffect 和 updateEffect 两个阶段：
 
 // // mountEffect 里执行了一个 pushEffect 的函数：
 
@@ -273,7 +273,7 @@ export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
 
 // // updateQueue 是个环形链表，有个 lastEffect 来指向最后一个 effect。
 
-// // 方便插入新的 effect ，直接设置 lastEffect.next 就行。
+// // 方便插入新的 effect，直接设置 lastEffect.next 就行。
 
 // // 也就是说我们执行完 useEffect 之后，就把 effect 串联起来放到了 fiber.updateQueue 上。
 

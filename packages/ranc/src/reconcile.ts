@@ -27,7 +27,7 @@ export const getCurrentKey = (): number => {
  */
 let currentFiber: Fiber
 /**
- * @description: 内存中正在重新构建的 Fiber树。
+ * @description: 内存中正在重新构建的 Fiber 树。
  * @return {*}
  */
 let workInProgressFiber: Fiber
@@ -46,7 +46,7 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
       tag: HOST_ROOT,
       type: vnode.type,
       lane: TAG.UPDATE,
-      dirty: true, // 当调用setState的时候，React将标记其为dirty，到每一个事件循环结束，React会检查所有标记的dirty的component进行重绘。
+      dirty: true, // 当调用 setState 的时候，React 将标记其为 dirty，到每一个事件循环结束，React 会检查所有标记的 dirty 的 component 进行重绘。
       isComp: false,
       key: getCurrentKey(),
       alternate: fiberRootNode,
@@ -62,7 +62,7 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
 /**
  * @description:
  * @param {*} current 在视图层渲染的树
- * @param {*} workInProgress 它就是在整个内存中所构建的 Fiber树，所有的更新都发生在workInProgress中，所以这个树是最新状态的，之后它将替换给current
+ * @param {*} workInProgress 它就是在整个内存中所构建的 Fiber 树，所有的更新都发生在 workInProgress 中，所以这个树是最新状态的，之后它将替换给 current
  * @param {*} renderLanes 跟优先级有关
  * @return {*}
  */
@@ -75,7 +75,7 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
 const createFiber = () => { }
 
 /**
- * @description: 创建 FiberRootNode ，并指向真正的 root
+ * @description: 创建 FiberRootNode，并指向真正的 root
  * @return {*}
  */
 const createFiberRoot = () => { }
@@ -146,7 +146,6 @@ const memo = (fiber: Fiber) => {
 }
 
 const capture = (fiber: Fiber): Fiber | undefined => {
-  debugger;
   currentFiber = fiber
   // 是不是自定义的组件
   fiber.isComp = isFn(fiber.type)
@@ -274,7 +273,7 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
       if (i > 0 && prev) {
         // 构建 fiber 链表
         prev.sibling = childFiber
-        // 如果有老的fiber，执行老的
+        // 如果有老的 fiber，执行老的
         child = child?.sibling
       } else {
         fiber.child = childFiber
@@ -372,17 +371,17 @@ export const isStr = (s: unknown): s is number | string =>
 
 // currentFiber , workInProgressFiber , fiberRootNode
 
-// React 更新DOM 采用的是双缓存技术。React 中最多会存在两颗 Fiber树：
+// React 更新 DOM 采用的是双缓存技术。React 中最多会存在两颗 Fiber 树：
 
 // currentFiber：页面中显示的内容
 
-// workInProgressFiber : 内存中正在重新构建的 Fiber树。
+// workInProgressFiber : 内存中正在重新构建的 Fiber 树。
 
 // 双缓存中：当 workInProgressFiber 在内存中构建完成后，
 
 // React 会直接用它 替换掉 currentFiber，这样能快速更新 DOM。
 
-// 一旦 workInProgressFiber树 渲染在页面上后，它就会变成 currentFiber 树，也就是说 fiberRootNode 会指向它。
+// 一旦 workInProgressFiber 树 渲染在页面上后，它就会变成 currentFiber 树，也就是说 fiberRootNode 会指向它。
 
 // 在 currentFiber 中有一个属性 alternate 指向它对应的 workInProgressFiber，
 

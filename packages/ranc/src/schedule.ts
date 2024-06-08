@@ -26,8 +26,8 @@ export class Schedule {
   private task(pending: boolean): Noop {
     // 取出 transitions 数组中第一个执行回调函数
     const cb = () => this.transitions.splice(0, 1).forEach((c) => c())
-    // 根据 queueMicrotask， MessageChannel，setTimeout 进行执行任务
-    // pending 为 false 时，不执行 queueMicrotask ，防止无限制的插入微任务，导致页面卡死
+    // 根据 queueMicrotask，MessageChannel，setTimeout 进行执行任务
+    // pending 为 false 时，不执行 queueMicrotask，防止无限制的插入微任务，导致页面卡死
     if (!pending && typeof queueMicrotask !== 'undefined') {
       return () => queueMicrotask(cb)
     }
@@ -98,12 +98,12 @@ export const schedule = (callback: Function): void => {
   startTransition(flush)
 }
 
-// 根据 queueMicrotask， MessageChannel，setTimeout 包装任务
+// 根据 queueMicrotask，MessageChannel，setTimeout 包装任务
 const task = (pending: boolean) => {
   // 取出 transitions 数组中第一个执行回调函数
   const cb = () => transitions.splice(0, 1).forEach((c) => c())
-  // 根据 queueMicrotask， MessageChannel，setTimeout 进行执行任务
-  // pending 为 false 时，不执行 queueMicrotask ，防止无限制的插入微任务，导致页面卡死
+  // 根据 queueMicrotask，MessageChannel，setTimeout 进行执行任务
+  // pending 为 false 时，不执行 queueMicrotask，防止无限制的插入微任务，导致页面卡死
   if (!pending && typeof queueMicrotask !== 'undefined') {
     return () => queueMicrotask(cb)
   }
@@ -114,7 +114,7 @@ const task = (pending: boolean) => {
   }
   return () => setTimeout(cb)
 }
-// 通过 queueMicrotask， MessageChannel，setTimeout 封装任务
+// 通过 queueMicrotask，MessageChannel，setTimeout 封装任务
 let translate = task(false)
 
 // 执行 queue 中的任务
