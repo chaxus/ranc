@@ -8,11 +8,12 @@ function App() {
     console.log(state)
   }
   return <>
-    <button onClick={() => setState(!state)}>button</button>
-    <button onClick={output}>console</button>
+    {/* <Child /> */}
+    <button onClick={() => setState(!state)}>button1</button>
+    {/* <button onClick={output}>console</button>
     <h1 onClick={() => setState(!state)}>
       <p>12454432</p>
-    </h1>
+    </h1> */}
     <Child />
     {state ? <h1>0</h1> : <a>none</a>}
   </>

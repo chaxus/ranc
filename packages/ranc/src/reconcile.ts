@@ -12,6 +12,8 @@ import { commit } from '@/src/commit'
 import { initArray, isArray } from '@/src/utils'
 import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from '@/src/vdom'
 
+const CACHE_KEY_NODE: Record<string, Fiber> = {}
+
 let key = 0
 
 const resetKey = () => {
@@ -26,104 +28,34 @@ export const getCurrentKey = (): number => {
  * @description: 页面中显示的内容，reconcile.ts 负责 vdom 转 fiber
  */
 let currentFiber: Fiber
-/**
- * @description: 内存中正在重新构建的 Fiber 树。
- * @return {*}
- */
+
 let workInProgressFiber: Fiber
 
-/**
- * @description: 页面中渲染的 fiber 树
- * @return {*}
- */
-let fiberRootNode: Fiber
 
 export const render = (vnode: VNode, node: HTMLElement | null): void => {
   if (vnode && node) {
     resetKey()
+    const key = vnode.key || getCurrentKey()
     workInProgressFiber = {
       parentNode: node,
       tag: HOST_ROOT,
       type: vnode.type,
-      lane: TAG.UPDATE,
       dirty: true, // 当调用 setState 的时候，React 将标记其为 dirty，到每一个事件循环结束，React 会检查所有标记的 dirty 的 component 进行重绘。
       isComp: false,
-      key: getCurrentKey(),
-      alternate: fiberRootNode,
-    }
-    if (!fiberRootNode) {
-      workInProgressFiber.alternate = { ...workInProgressFiber }
+      key,
+      op: TAG.INSERT,
     }
     update(workInProgressFiber)
     // 缓存渲染的结果
-    fiberRootNode = workInProgressFiber
+    CACHE_KEY_NODE[key] = workInProgressFiber
   }
-}
-/**
- * @description:
- * @param {*} current 在视图层渲染的树
- * @param {*} workInProgress 它就是在整个内存中所构建的 Fiber 树，所有的更新都发生在 workInProgress 中，所以这个树是最新状态的，之后它将替换给 current
- * @param {*} renderLanes 跟优先级有关
- * @return {*}
- */
-// const beginWork = (current, workInProgress, renderLanes) => { }
-
-/**
- * @description: 创建 FiberNode
- * @return {*}
- */
-const createFiber = () => { }
-
-/**
- * @description: 创建 FiberRootNode，并指向真正的 root
- * @return {*}
- */
-const createFiberRoot = () => { }
-
-const dfs = (fiber: Fiber) => {
-  if (fiber.sibling) {
-    fiber.sibling.alternate = fiber.alternate?.sibling
-    if (typeof fiber.sibling.type === 'string' && isSameFiber(fiber.sibling) !== isSameFiber(fiber.sibling.alternate)) {
-      removeElement(fiber.sibling)
-    } else {
-      dfs(fiber.sibling)
-    }
-  }
-  if (fiber.child) {
-    fiber.child.alternate = fiber.alternate?.child
-    if (typeof fiber.child.type === 'string' && isSameFiber(fiber.child) !== isSameFiber(fiber.child.alternate)) {
-      removeElement(fiber.child)
-    }
-    dfs(fiber.child)
-  }
-}
-
-const isSameFiber = (fiber?: Fiber) => {
-  if (fiber) {
-    const { key = '', type = '', tag } = fiber
-    return `${key}${type}${tag}`
-  }
-  return false
 }
 
 // update
-// TODO：更新 state 后，新老 fiber 的对比
 export const update = (fiber: Fiber): void => {
-  console.log('fiber', fiber)
-  // if (workInProgressFiber && fiber.child) {
-  // fiber.child.alternate = fiber.alternate?.child
-  // const { alternate } = fiber.child
-  // if (typeof fiber.child.type === 'string' && isSameFiber(fiber.child) !== isSameFiber(alternate)) {
-  //   removeElement(fiber.child)
-  // }
-  // dfs(fiber.child)
-  // }
+  removeElement(fiber)
+  fiber.dirty = true
   schedule(() => reconcile(fiber))
-  // schedule 是调度器
-  // 将优先级高的任务推进 reconcile
-  // reconcile 将 vdom 转换成 fiber，新的 VDOM 和 旧的 Fiber 进行 diff 对比，并同时打上进行什么操作的 tag
-  // render 渲染成 dom
-  schedule(() => reconcile(workInProgressFiber))
 }
 
 const reconcile = (fiber?: Fiber): boolean | Function => {
@@ -133,39 +65,19 @@ const reconcile = (fiber?: Fiber): boolean | Function => {
   return false
 }
 
-const memo = (fiber: Fiber) => {
-  // ÷÷
-  if (fiber.memo && fiber.old?.props) {
-    const scu = fiber.shouldUpdate || shouldUpdate
-    // 当前组件是否需要更新，不需要的话返回兄弟节点
-    if (!scu(fiber.props || {}, fiber.old.props)) {
-      return getSibling(fiber)
-    }
-  }
-  return null
-}
-
 const capture = (fiber: Fiber): Fiber | undefined => {
   currentFiber = fiber
-  // 是不是自定义的组件
+  if (!fiber.key) {
+    fiber.key = getCurrentKey()
+  }
+  CACHE_KEY_NODE[fiber.key] = fiber
   fiber.isComp = isFn(fiber.type)
   if (fiber.isComp) {
-    const memoFiber = memo(fiber)
-    if (memoFiber) {
-      return memoFiber
-    }
     updateHook(fiber)
   } else {
     updateHost(fiber)
   }
-  if (fiber.child) {
-    if (!fiberRootNode && fiber.alternate) {
-      fiber.alternate.child = { ...fiber.child }
-      fiber.alternate.child.parent = fiber.alternate
-    }
-    fiber.child.alternate = fiber.alternate?.child
-    return fiber.child
-  }
+  if (fiber.child) return fiber.child
   const sibling = getSibling(fiber)
   return sibling
 }
@@ -177,16 +89,7 @@ const getSibling = (fiber?: Fiber): Fiber | undefined => {
       fiber.dirty = false
       commit(fiber)
     }
-    if (fiber.sibling) {
-      if (!fiberRootNode) {
-        fiber.sibling.alternate = { ...fiber.sibling }
-      }
-      fiber.sibling.alternate = fiber.alternate?.sibling
-      return fiber.sibling
-    }
-    if (fiber.parent) {
-      fiber.parent.alternate = fiber.alternate?.parent
-    }
+    if (fiber.sibling) return fiber.sibling
     fiber = fiber.parent
   }
   return undefined
@@ -214,12 +117,17 @@ const updateHook = (fiber: Fiber): void => {
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
     children && reconcileChildren(fiber, isArray(children) ? children : [children])
+    // fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   }
 }
 
 const updateHost = (fiber: Fiber): void => {
-  fiber.parentNode = getParentNode(fiber)
   currentFiber = fiber
+  fiber.parentNode = getParentNode(fiber)
+  if (!fiber.key) {
+    fiber.key = getCurrentKey()
+  }
+  CACHE_KEY_NODE[fiber.key] = fiber
   if (!fiber.node) {
     const flag = createElement(fiber)
     if (flag) {
@@ -246,35 +154,29 @@ const noopStr = (x: any): string => {
 }
 
 const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
-  const aCh = fiber.kids || [],
-    bCh = (fiber.kids = children)
-  const actions = diff(aCh, bCh)
-  let child = fiber.alternate?.child
-  for (let i = 0, len = actions.length, prev: Fiber | undefined = undefined; i < len; i++) {
-    const { op, elm, from } = actions[i]
+  const { dirty, sibling } = fiber
+  for (let i = 0, len = children.length, prev: Fiber | undefined = undefined; i < len; i++) {
+    const elm = children[i]
     if (typeof elm === 'object' && elm) {
-      const { props, type, text } = elm
+      const { props, type, ref, text } = elm
+      const key = elm.key || getCurrentKey()
       const childFiber: Fiber = {
         props,
         type,
         tag: 0,
-        dirty: true,
-        lane: op,
-        key: `${noopStr(elm.key)}${getCurrentKey()}`,
+        dirty,
+        key,
         text,
+        ref,
+        siblingNode: sibling?.node,
         isComp: isFn(type),
+        op: TAG.INSERT,
       }
-      childFiber.action = actions[i]
-      childFiber.alternate = child
-      if (fiber.lane & TAG.SVG) {
-        childFiber.lane |= TAG.SVG
-      }
+      CACHE_KEY_NODE[key] = childFiber
       childFiber.parent = fiber
       if (i > 0 && prev) {
         // 构建 fiber 链表
         prev.sibling = childFiber
-        // 如果有老的 fiber，执行老的
-        child = child?.sibling
       } else {
         fiber.child = childFiber
       }
@@ -284,16 +186,6 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   }
 }
 
-// 更新 b 节点的数据
-function clone(a: VNode, b: VNode) {
-  // b.hooks = a.hooks
-  b.ref = a.ref
-  // b.node = a.node // 临时修复
-  // b.kids = a.kids
-  // b.old = a
-  b.type = a.type
-  // b.props = a.props
-}
 
 const side = (effects?: Effect[]): void => {
   if (effects) {
@@ -303,65 +195,6 @@ const side = (effects?: Effect[]): void => {
     effects.forEach((e) => (e[2] = e[0]()))
     effects.length = 0
   }
-}
-// a 是原来的数组
-// b 是新的数组
-// 对比两者的差异，在原来的数组，即 a 数组，打上需要如何操作的标识
-function diff(a: ComponentChildren, b: ComponentChildren) {
-  const actions: Array<FiberAction> = [],
-    aIdx: Record<string, number> = {},
-    bIdx: Record<string, number> = {},
-    key = (v: ComponentChild) => {
-      if (typeof v === 'object') {
-        const { key = '', type = '', _original } = v || {}
-        return `${key}${type}${_original}`
-      }
-      return `${v}`
-    }
-  let i, j
-  // 配置 a 的映射 key + type，映射到 index
-  for (i = 0; i < a.length; i++) {
-    aIdx[key(a[i])] = i
-  }
-  // 配置 b 的映射 key + type，映射到 index
-  for (i = 0; i < b.length; i++) {
-    bIdx[key(b[i])] = i
-  }
-  // 双指针遍历 a 和 b ，直到两个都结束
-  for (i = j = 0; i !== a.length || j !== b.length;) {
-    const aElm = a[i], bElm = b[j]
-    if (b.length <= i) {
-      // 移除 a 元素，i++
-      actions.push({ op: TAG.REMOVE, elm: aElm })
-      i++
-      // 如果 a 元素没有了，说明需要新增，打上新增的标记
-    } else if (a.length <= j) {
-      actions.push({ op: TAG.INSERT, elm: bElm, from: aElm })
-      j++
-      // 如果两个元素的 key 和 type 类型相等，则进行更新
-    } else if (key(aElm) === key(bElm)) {
-      actions.push({ op: TAG.UPDATE, elm: bElm, from: aElm })
-      i++
-      j++
-    } else {
-      // a 元素是否在 b 元素中，不在即删除
-      const curElmInNew = bIdx[key(aElm)]
-      // b 元素是否在 a 元素中，不在即新增，在即复用
-      const wantedElmInOld = aIdx[key(bElm)]
-      if (curElmInNew === undefined) {
-        actions.push({ op: TAG.REMOVE, elm: aElm })
-        i++
-      } else if (wantedElmInOld === undefined) {
-        actions.push({ op: TAG.INSERT, elm: bElm, from: aElm })
-        j++
-      } else {
-        actions.push({ op: TAG.MOVE, elm: bElm, from: aElm })
-        i++
-        j++
-      }
-    }
-  }
-  return actions
 }
 
 export const getCurrentFiber = (): Fiber => currentFiber

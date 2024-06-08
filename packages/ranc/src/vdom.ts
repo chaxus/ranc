@@ -3,7 +3,7 @@ type Key = string | number | any
 
 type RefObject<T> = { current: T | null }
 type RefCallback<T> = (instance: T | null) => void
-type Ref<T> = RefObject<T> | RefCallback<T> | null
+export type Ref<T> = RefObject<T> | RefCallback<T> | null
 // Component
 
 export type ComponentType<P = {}> = ComponentClass<P> | FunctionComponent<P>

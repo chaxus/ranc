@@ -1,4 +1,4 @@
-import { getParentNode } from '@/src/reconcile'
+import { getParentNode, isFn } from '@/src/reconcile'
 import { TAG } from '@/src/type'
 import type { Attributes, DOMElement, Fiber } from '@/src/type'
 import { kidsRefer, refer } from '@/src/commit'
@@ -67,7 +67,7 @@ export const createElement = (
   let dom = undefined
   if (fiber.type === '#text') {
     dom = document.createTextNode(fiber.text || '')
-  } else if (fiber.lane & TAG.SVG && fiber.type === 'svg') {
+  } else if (fiber.type === 'svg') {
     dom = document.createElementNS(SVG_ORG, fiber.type)
   } else if (isStr(fiber.type)) {
     dom = document.createElement(fiber.type)
@@ -79,17 +79,25 @@ export const createElement = (
  * @description: 删除元素
  * @param {Fiber} fiber
  */
-export const removeElement = (fiber: Fiber): void => {
-  const parentNode = fiber.parentNode || getParentNode(fiber)
+export const removeElement = (fiber: Fiber): string | void => {
+  // const parentNode = fiber.parentNode || getParentNode(fiber)
+  if (fiber.parentNode) {
+    // debugger;
+    return fiber.parentNode.innerHTML = ''
+  }
   if (fiber.isComp) {
     fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
-    // fiber.kids && fiber.kids?.forEach(removeElement)
-  } else {
-    parentNode && fiber.node && parentNode.removeChild(fiber.node)
-    // fiber.kids && kidsRefer(fiber.kids)
-    fiber.ref && refer(fiber.ref)
-    // }
+    const parentNode = fiber.parentNode || getParentNode(fiber)
+    let node = fiber
+    while (node && isFn(node.type) && node.child) {
+      node = node.child
+    }
+    if (node?.node && parentNode?.contains(node.node)) {
+      parentNode?.removeChild(node.node)
+    }
+
   }
+  // fiber.ref && refer(fiber.ref)
 }
 /**
  * @description: 插入元素
@@ -97,8 +105,8 @@ export const removeElement = (fiber: Fiber): void => {
  * @return {*}
  */
 export const insertBeforeElement = (fiber: Fiber): void => {
-  const { before } = fiber.action || {}
-  fiber.parentNode && fiber.node && fiber.parentNode.insertBefore(fiber.node, before?.node || null)
+  const { sibling, siblingNode } = fiber || {}
+  fiber.parentNode && fiber.node && fiber.parentNode.insertBefore(fiber.node, sibling?.node || siblingNode || null)
 }
 
 // TODO:

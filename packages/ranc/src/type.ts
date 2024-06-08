@@ -3,7 +3,7 @@
  * @Date: 2023-06-05 10:29:01
  * @description: 分为几块类型：真实的 DOM，虚拟 DOM，Fiber，Hook，RECONCILE(调度器)，一个工具方法类型
  * @LastEditors: chaxus nouo18@163.com
- * @LastEditTime: 2024-06-08 21:51:28
+ * @LastEditTime: 2024-06-09 01:20:30
  */
 
 import type { ComponentChild, ComponentChildren, ComponentType, VNode } from "@/src/vdom"
@@ -79,28 +79,26 @@ export interface Fiber<P = {}> {
   type: string | ComponentType<P> // 与 fiber 关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
   node?: DOMElement // 真实的 DOM 节点
-  kids?: ComponentChildren // 子节点数组
-  dirty: boolean
-  old?: Fiber<P> 
-  alternate?: Fiber<P> 
+  siblingNode?: DOMElement // 同一父级下一个真实的 DOM 节点
   // fiber 链表
   parent?: Fiber<P>
   sibling?: Fiber<P>
   child?: Fiber<P>
 
-  done?: () => void
-  ref?: FiberRef
+  ref?: Ref<any> | null
   hooks?: Hook
   // 本次渲染所需要的 props
   props?: P & { children: ComponentChildren }
   // 上次渲染所需要的 props
   oldProps?: P & { children: ComponentChildren }
   // 应该执行什么操作
-  action?: any
-  lane: number // 优先级，用于调度
   isComp: boolean
   memo?: boolean
   shouldUpdate?: (newProps: P, oldProps: P) => boolean
+  // 节点需要执行的操作
+  op: TAG
+  // 当调用 setState 的时候，React 将标记其为 dirty，到每一个事件循环结束，React 会检查所有标记的 dirty 的 component 进行重绘。
+  dirty: boolean
 }
 
 export interface FiberAction {
