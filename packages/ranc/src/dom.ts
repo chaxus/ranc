@@ -20,12 +20,9 @@ const jointIter = <P extends Attributes>(
   aProps = aProps || defaultObj
   bProps = bProps || defaultObj
   Object.keys(aProps).forEach((k) => callback(k, aProps[k], bProps[k]))
-  Object.keys(bProps).forEach(
-    (k) => {
-      !Object.hasOwnProperty.call(aProps, k) && callback(k, undefined, bProps[k])
-    }
-
-  )
+  Object.keys(bProps).forEach((k) => {
+    !Object.hasOwnProperty.call(aProps, k) && callback(k, undefined, bProps[k])
+  })
 }
 /**
  * @description: 更新元素
@@ -83,10 +80,10 @@ export const removeElement = (fiber: Fiber): string | void => {
   // const parentNode = fiber.parentNode || getParentNode(fiber)
   if (fiber.parentNode) {
     // debugger;
-    return fiber.parentNode.innerHTML = ''
+    return (fiber.parentNode.innerHTML = '')
   }
   if (fiber.isComp) {
-    fiber.hooks && fiber.hooks.list.forEach(e => e[2] && e[2]())
+    fiber.hooks && fiber.hooks.list.forEach((e) => e[2] && e[2]())
     const parentNode = fiber.parentNode || getParentNode(fiber)
     let node = fiber
     while (node && isFn(node.type) && node.child) {
@@ -95,7 +92,6 @@ export const removeElement = (fiber: Fiber): string | void => {
     if (node?.node && parentNode?.contains(node.node)) {
       parentNode?.removeChild(node.node)
     }
-
   }
   // fiber.ref && refer(fiber.ref)
 }
@@ -106,7 +102,12 @@ export const removeElement = (fiber: Fiber): string | void => {
  */
 export const insertBeforeElement = (fiber: Fiber): void => {
   const { sibling, siblingNode } = fiber || {}
-  fiber.parentNode && fiber.node && fiber.parentNode.insertBefore(fiber.node, sibling?.node || siblingNode || null)
+  fiber.parentNode &&
+    fiber.node &&
+    fiber.parentNode.insertBefore(
+      fiber.node,
+      sibling?.node || siblingNode || null,
+    )
 }
 
 // TODO:

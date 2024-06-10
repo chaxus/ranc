@@ -1,26 +1,26 @@
-import type { Fiber, FiberProps } from "./type";
+import type { Fiber, FiberProps } from './type'
 import type { ComponentChildren, ErrorInfo, VNode } from '@/src/vdom'
 
 export const isArr = Array.isArray
 
-export const initArray = (arr:ComponentChildren): ComponentChildren => (!arr ? [] : isArr(arr) ? arr : [arr]);
+export const initArray = (arr: ComponentChildren): ComponentChildren =>
+  !arr ? [] : isArr(arr) ? arr : [arr]
 
 export const isStr = (s: unknown): s is string => typeof s === 'string'
 
 export const isNothing = (s: string | boolean | null | undefined): boolean => {
-    const list = [null, 'null', undefined, 'undefined', '', false, 'false']
-    return list.includes(s)
+  const list = [null, 'null', undefined, 'undefined', '', false, 'false']
+  return list.includes(s)
 }
 
-export const noop = (): void => { }
+export const noop = (): void => {}
 
-export const EMPTY_OBJ = {};
-export const EMPTY_ARR = [];
+export const EMPTY_OBJ = {}
+export const EMPTY_ARR = []
 export const IS_NON_DIMENSIONAL =
-    /acit|ex(?:[sgnp]|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
+  /acit|ex(?:[sgnp]|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i
 
-
-export const isArray = Array.isArray;
+export const isArray = Array.isArray
 
 /**
  * Assign properties from `props` to `obj`
@@ -30,10 +30,10 @@ export const isArray = Array.isArray;
  * @returns {O & P}
  */
 export function assign<O, P>(obj: O, props: P): O & P {
-    // @ts-ignore We change the type of `obj` to be `O & P`
-    for (const i in props) obj[i] = props[i];
-    // @ts-ignore We change the type of `obj` to be `O & P`
-    return obj
+  // @ts-expect-error We change the type of `obj` to be `O & P`
+  for (const i in props) obj[i] = props[i]
+  // @ts-expect-error We change the type of `obj` to be `O & P`
+  return obj
 }
 
 /**
@@ -43,15 +43,15 @@ export function assign<O, P>(obj: O, props: P): O & P {
  * @param {Node} node The node to remove
  */
 export function removeNode(node: Node): void {
-    const parentNode = node.parentNode;
-    if (parentNode) parentNode.removeChild(node);
+  const parentNode = node.parentNode
+  if (parentNode) parentNode.removeChild(node)
 }
 
-export const slice = EMPTY_ARR.slice;
+export const slice = EMPTY_ARR.slice
 
 interface VNodeError {
-    _parent: VNode,
-    _component: VNode
+  _parent: VNode
+  _component: VNode
 }
 
 /**
@@ -63,34 +63,39 @@ interface VNodeError {
  * @param {import('../internal').VNode} [oldVNode]
  * @param {import('../internal').ErrorInfo} [errorInfo]
  */
-export function _catchError(error: object, vnode: any, oldVNode: VNode, errorInfo: ErrorInfo): any {
-    /** @type {import('../internal').Component} */
-    let component, ctor, handled;
+export function _catchError(
+  error: object,
+  vnode: any,
+  oldVNode: VNode,
+  errorInfo: ErrorInfo,
+): any {
+  /** @type {import('../internal').Component} */
+  let component, ctor, handled
 
-    for (; (vnode = vnode._parent);) {
-        if ((component = vnode._component) && !component._processingException) {
-            try {
-                ctor = component.constructor;
+  for (; (vnode = vnode._parent); ) {
+    if ((component = vnode._component) && !component._processingException) {
+      try {
+        ctor = component.constructor
 
-                if (ctor && ctor.getDerivedStateFromError != null) {
-                    component.setState(ctor.getDerivedStateFromError(error));
-                    handled = component._dirty;
-                }
-
-                if (component.componentDidCatch != null) {
-                    component.componentDidCatch(error, errorInfo || {});
-                    handled = component._dirty;
-                }
-
-                // This is an error boundary. Mark it as having bailed out, and whether it was mid-hydration.
-                if (handled) {
-                    return (component._pendingError = component);
-                }
-            } catch (e) {
-                error = e;
-            }
+        if (ctor && ctor.getDerivedStateFromError != null) {
+          component.setState(ctor.getDerivedStateFromError(error))
+          handled = component._dirty
         }
-    }
 
-    throw error;
+        if (component.componentDidCatch != null) {
+          component.componentDidCatch(error, errorInfo || {})
+          handled = component._dirty
+        }
+
+        // This is an error boundary. Mark it as having bailed out, and whether it was mid-hydration.
+        if (handled) {
+          return (component._pendingError = component)
+        }
+      } catch (e) {
+        error = e
+      }
+    }
+  }
+
+  throw error
 }

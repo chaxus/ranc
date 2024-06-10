@@ -6,7 +6,12 @@
  * @LastEditTime: 2024-06-09 01:20:30
  */
 
-import type { ComponentChild, ComponentChildren, ComponentType, VNode } from "@/src/vdom"
+import type {
+  ComponentChild,
+  ComponentChildren,
+  ComponentType,
+  VNode,
+} from '@/src/vdom'
 
 // DOM
 export type DOMAttributes = NamedNodeMap
@@ -51,7 +56,7 @@ export interface FC<P = {}> {
 export interface Attributes extends Partial<DOMAttributes> {
   key?: Key
   ref?: Ref
-  children?: Array<VNode>; 
+  children?: Array<VNode>
   memo?: boolean
 }
 
@@ -75,7 +80,7 @@ export const HostText = 6 // 文本类型 比如：<div>123</div>
 export interface Fiber<P = {}> {
   tag: WorkTag // 组件的类型，判断函数式组件、类组件等（上述的 tag）
   key?: string | number
-  text?:string,
+  text?: string
   type: string | ComponentType<P> // 与 fiber 关联的功能或类，如<div>,指向对应的类或函数
   parentNode?: DOMElement
   node?: DOMElement // 真实的 DOM 节点

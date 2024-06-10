@@ -1,5 +1,5 @@
 // import { render, useState } from "../index"
-import { render, useState } from "../index"
+import { render, useState } from '../index'
 // import { Fragment, h, render, useState } from '@/dist/index'
 
 function App() {
@@ -7,16 +7,18 @@ function App() {
   const output = () => {
     console.log(state)
   }
-  return <>
-    {/* <Child /> */}
-    <button onClick={() => setState(!state)}>button1</button>
-    {/* <button onClick={output}>console</button>
+  return (
+    <>
+      {/* <Child /> */}
+      <button onClick={() => setState(!state)}>button1</button>
+      {/* <button onClick={output}>console</button>
     <h1 onClick={() => setState(!state)}>
       <p>12454432</p>
     </h1> */}
-    <Child />
-    {state ? <h1>0</h1> : <a>none</a>}
-  </>
+      <Child />
+      {state ? <h1>0</h1> : <a>none</a>}
+    </>
+  )
 }
 
 const Child = () => {
@@ -27,4 +29,4 @@ const Child = () => {
   return <button onClick={change}>child:{state}</button>
 }
 
-render(<App />, document.getElementById("app"))
+render(<App />, document.getElementById('app'))

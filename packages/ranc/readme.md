@@ -14,7 +14,7 @@ npm install ranc
 ```
 
 ```tsx
-import { render, useState } from "ranc"
+import { render, useState } from 'ranc'
 // If the jsx-runtime is not config, it needs to be imported
 // import { Fragment, jsx } from 'ranc'
 
@@ -23,15 +23,17 @@ function App() {
   const output = () => {
     console.log(state)
   }
-  return <>
-    <button onClick={() => setState(!state)}>button</button>
-    <button onClick={output}>console</button>
-    <h1 onClick={() => setState(!state)}>
-      <p>12454432</p>
-    </h1>
-    <Child />
-    {state ? <h2>0</h2> : <a>none</a>}
-  </>
+  return (
+    <>
+      <button onClick={() => setState(!state)}>button</button>
+      <button onClick={output}>console</button>
+      <h1 onClick={() => setState(!state)}>
+        <p>12454432</p>
+      </h1>
+      <Child />
+      {state ? <h2>0</h2> : <a>none</a>}
+    </>
+  )
 }
 
 const Child = () => {
@@ -42,12 +44,12 @@ const Child = () => {
   return <h3 onClick={change}>child:{state}</h3>
 }
 
-render(<App />, document.getElementById("app"))
+render(<App />, document.getElementById('app'))
 ```
 
 ### jsx-runtime
 
-- tsconfig.json 
+- tsconfig.json
 
 ```json
  "compilerOptions": {
@@ -57,6 +59,7 @@ render(<App />, document.getElementById("app"))
     "jsxImportSource":"ranc",
   }
 ```
+
 - babel:
 
 ```js
@@ -73,6 +76,7 @@ render(<App />, document.getElementById("app"))
   ]
 }
 ```
+
 - esbuild
 
 ```js
@@ -84,17 +88,21 @@ render(<App />, document.getElementById("app"))
 ```
 
 ### Hooks API
+
 // TODO
+
 #### useState
+
 ```tsx
 function App() {
   const [state, setState] = useState(false)
-  return <>
-    <button onClick={() => setState(!state)}>button</button>
-    {state ? <h2>0</h2> : <a>none</a>}
-  </>
+  return (
+    <>
+      <button onClick={() => setState(!state)}>button</button>
+      {state ? <h2>0</h2> : <a>none</a>}
+    </>
+  )
 }
 
-render(<App />, document.getElementById("app"))
-
+render(<App />, document.getElementById('app'))
 ```

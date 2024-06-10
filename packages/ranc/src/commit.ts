@@ -1,7 +1,7 @@
 import { insertBeforeElement, removeElement, updateElement } from '@/src/dom'
 import { isFn } from '@/src/reconcile'
-import { TAG } from '@/src/type';
-import type { DOMElement, Fiber, FiberRef } from '@/src/type';
+import { TAG } from '@/src/type'
+import type { DOMElement, Fiber, FiberRef } from '@/src/type'
 /**
  * @description: 操作具体 dom 和执行副作用
  * @param {Fiber} fiber
@@ -23,7 +23,8 @@ export const commit = (fiber: Fiber): void => {
     if (fiber.isComp && fiber.child) {
       fiber.child.op |= fiber.op
     } else {
-      fiber.node && updateElement(fiber.node, fiber.oldProps || {}, fiber.props || {})
+      fiber.node &&
+        updateElement(fiber.node, fiber.oldProps || {}, fiber.props || {})
     }
   }
 

@@ -1,4 +1,3 @@
-
 type Key = string | number | any
 
 type RefObject<T> = { current: T | null }
@@ -45,7 +44,7 @@ interface Component<P = {}, S = {}> {
 }
 
 interface ComponentClass<P = {}, S = {}> {
-  new(props: P, context?: any): Component<P, S>
+  new (props: P, context?: any): Component<P, S>
   displayName?: string
   defaultProps?: Partial<P>
   contextType?: Context<any>
@@ -59,13 +58,13 @@ interface ComponentClass<P = {}, S = {}> {
 interface Consumer<T>
   extends FunctionComponent<{
     children: (value: T) => ComponentChildren
-  }> { }
+  }> {}
 
 interface Provider<T>
   extends FunctionComponent<{
     value: T
     children: ComponentChildren
-  }> { }
+  }> {}
 
 interface Context<T> {
   Consumer: Consumer<T>
@@ -73,19 +72,18 @@ interface Context<T> {
   displayName?: string
 }
 
-interface RancProvider<T> extends Provider<T> { }
-type ContextType<C extends Context<any>> = C extends Context<infer T>
-  ? T
-  : never;
+interface RancProvider<T> extends Provider<T> {}
+type ContextType<C extends Context<any>> =
+  C extends Context<infer T> ? T : never
 
-interface RancContext<T> extends Context<T> { }
+interface RancContext<T> extends Context<T> {}
 
 // function createContext<T>(defaultValue: T): Context<T>;
-// VNode 
+// VNode
 
 export interface VNode<P = {}> {
   type: ComponentType<P> | string
-  text?: string,
+  text?: string
   props: P & { children: ComponentChildren }
   key: Key
   /**
@@ -115,7 +113,7 @@ interface Attributes {
 export type RenderableProps<P, RefType = any> = P &
   Readonly<Attributes & { children?: ComponentChildren; ref?: Ref<RefType> }>
 
-let vnodeId = 0
+const vnodeId = 0
 
 /**
  * Create an virtual node (used for JSX)
@@ -131,9 +129,10 @@ export function createElement(
   ...children: Array<ComponentChildren>
 ): VNode {
   const normalizedProps: Record<string, any> = {}
-  let key: string | number | null = null, ref: any = null
+  let key: string | number | null = null,
+    ref: any = null
   if (props) {
-    Object.keys(props).forEach(i => {
+    Object.keys(props).forEach((i) => {
       if (i === 'key') key = props[i]
       else if (i === 'ref') ref = props[i]
       else normalizedProps[i] = props[i]
@@ -144,8 +143,11 @@ export function createElement(
     children.forEach((child, index) => {
       if (typeof child === 'function') {
         normalizedProps.children.push(child)
-      } else if (['string','number'].includes(typeof child)) {
-        if (index >= 1 && normalizedProps.children[index - 1].type === '#text') {
+      } else if (['string', 'number'].includes(typeof child)) {
+        if (
+          index >= 1 &&
+          normalizedProps.children[index - 1].type === '#text'
+        ) {
           normalizedProps.children[index - 1].text += child
         } else {
           normalizedProps.children.push({ type: '#text', text: child })
@@ -183,7 +185,7 @@ export function createVNode(
     type,
     props,
     key,
-    ref
+    ref,
   }
   return vnode
 }

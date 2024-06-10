@@ -11,7 +11,8 @@ export default defineConfig({
   esbuild: {
     jsxFactory: 'jsx',
     jsxFragment: 'Fragment',
-    jsxInject: 'import { createElement as jsx, createElement as h, Fragment } from "@/src/vdom"',
+    jsxInject:
+      'import { createElement as jsx, createElement as h, Fragment } from "@/src/vdom"',
   },
   build: {
     minify: 'terser',
@@ -21,7 +22,7 @@ export default defineConfig({
     lib: {
       entry: ['index.ts', 'jsx-runtime', 'jsx-dev-runtime'],
       name: 'ranc',
-      formats: ['es','cjs'],
+      formats: ['es', 'cjs'],
     },
   },
   resolve: {

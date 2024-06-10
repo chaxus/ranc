@@ -1,16 +1,16 @@
 import { HOST_ROOT, TAG } from '@/src/type'
-import type {
-  DOMElement,
-  Effect,
-  Fiber,
-  FiberAction,
-} from '@/src/type'
+import type { DOMElement, Effect, Fiber, FiberAction } from '@/src/type'
 import { createElement, removeElement } from '@/src/dom'
 import { resetCursor } from '@/src/hook'
 import { schedule, shouldYield } from '@/src/schedule'
 import { commit } from '@/src/commit'
 import { initArray, isArray } from '@/src/utils'
-import type { ComponentChild, ComponentChildren, FunctionComponent, VNode } from '@/src/vdom'
+import type {
+  ComponentChild,
+  ComponentChildren,
+  FunctionComponent,
+  VNode,
+} from '@/src/vdom'
 
 const CACHE_KEY_NODE: Record<string, Fiber> = {}
 
@@ -30,7 +30,6 @@ export const getCurrentKey = (): number => {
 let currentFiber: Fiber
 
 let workInProgressFiber: Fiber
-
 
 export const render = (vnode: VNode, node: HTMLElement | null): void => {
   if (vnode && node) {
@@ -116,7 +115,8 @@ const updateHook = (fiber: Fiber): void => {
   resetCursor()
   if (fiber.type instanceof Function) {
     const children = (fiber.type as FunctionComponent)(fiber.props || {})
-    children && reconcileChildren(fiber, isArray(children) ? children : [children])
+    children &&
+      reconcileChildren(fiber, isArray(children) ? children : [children])
     // fiber.props?.children && reconcileChildren(fiber, fiber.props.children)
   }
 }
@@ -155,7 +155,11 @@ const noopStr = (x: any): string => {
 
 const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
   const { dirty, sibling } = fiber
-  for (let i = 0, len = children.length, prev: Fiber | undefined = undefined; i < len; i++) {
+  for (
+    let i = 0, len = children.length, prev: Fiber | undefined = undefined;
+    i < len;
+    i++
+  ) {
     const elm = children[i]
     if (typeof elm === 'object' && elm) {
       const { props, type, ref, text } = elm
@@ -185,7 +189,6 @@ const reconcileChildren = (fiber: Fiber, children: ComponentChildren): void => {
     }
   }
 }
-
 
 const side = (effects?: Effect[]): void => {
   if (effects) {

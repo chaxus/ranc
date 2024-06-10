@@ -1,16 +1,16 @@
-import { getCurrentFiber, getCurrentKey, isFn, update } from "./reconcile"
+import { getCurrentFiber, getCurrentKey, isFn, update } from './reconcile'
 import type {
-    DependencyList,
-    Dispatch,
-    Effect,
-    EffectCallback,
-    Fiber,
-    HookTypes,
-    RancNode,
-    Reducer,
-    RefObject,
-    SetStateAction
-} from "./type"
+  DependencyList,
+  Dispatch,
+  Effect,
+  EffectCallback,
+  Fiber,
+  HookTypes,
+  RancNode,
+  Reducer,
+  RefObject,
+  SetStateAction,
+} from './type'
 
 const EMPTY_ARR: [] = []
 
@@ -21,141 +21,150 @@ let cursor = 0
  * @return {*}
  */
 export const resetCursor = (): void => {
-    cursor = 0
+  cursor = 0
 }
 
 export const useState = <T>(initState: T): [T, Dispatch<SetStateAction<T>>] => {
-    return useReducer(undefined, initState)
+  return useReducer(undefined, initState)
 }
 
 export const useReducer = <S, A>(
-    reducer?: Reducer<S, A>,
-    initState?: S
+  reducer?: Reducer<S, A>,
+  initState?: S,
 ): [S, Dispatch<A>] => {
-    // 获取当前 fiber 节点上的 hook list 中 cursor 项
-    // 如果没有的话就创建一个空
-    const [hook, current]: [any, Fiber] = getHook(cursor++)
-    if (hook.length === 0) {
-        hook[0] = initState
-        hook[1] = (value: A | Dispatch<A>) => {
-            hook[0] = reducer
-                ? reducer(hook[0], value)
-                : isFn(value)
-                    ? value(hook[0])
-                    : value
-            update(current)
-        }
+  // 获取当前 fiber 节点上的 hook list 中 cursor 项
+  // 如果没有的话就创建一个空
+  const [hook, current]: [any, Fiber] = getHook(cursor++)
+  if (hook.length === 0) {
+    hook[0] = initState
+    hook[1] = (value: A | Dispatch<A>) => {
+      hook[0] = reducer
+        ? reducer(hook[0], value)
+        : isFn(value)
+          ? value(hook[0])
+          : value
+      update(current)
     }
-    return hook
+  }
+  return hook
 }
 
 export const useEffect = (cb: EffectCallback, deps?: DependencyList): void => {
-    return effectImpl(cb, deps!, "effect")
+  return effectImpl(cb, deps!, 'effect')
 }
 
 export const useLayout = (cb: EffectCallback, deps?: DependencyList): void => {
-    return effectImpl(cb, deps!, "layout")
+  return effectImpl(cb, deps!, 'layout')
 }
 
 const effectImpl = (
-    cb: EffectCallback,
-    deps: DependencyList,
-    key: HookTypes
+  cb: EffectCallback,
+  deps: DependencyList,
+  key: HookTypes,
 ): void => {
-    const [hook, current]: [any, Fiber] = getHook(cursor++)
-    if (isChanged(hook[1], deps)) {
-        hook[0] = cb
-        hook[1] = deps
-        if (current.hooks) {
-            current.hooks[key].push(hook)
-        }
+  const [hook, current]: [any, Fiber] = getHook(cursor++)
+  if (isChanged(hook[1], deps)) {
+    hook[0] = cb
+    hook[1] = deps
+    if (current.hooks) {
+      current.hooks[key].push(hook)
     }
+  }
 }
 
 export const useMemo = <S = Function>(
-    cb: () => S,
-    deps: DependencyList = []
+  cb: () => S,
+  deps: DependencyList = [],
 ): S => {
-    const hook: any = getHook(cursor++)[0]
-    if (isChanged(hook[1], deps)) {
-        hook[1] = deps
-        return (hook[0] = cb())
-    }
-    return hook[0]
+  const hook: any = getHook(cursor++)[0]
+  if (isChanged(hook[1], deps)) {
+    hook[1] = deps
+    return (hook[0] = cb())
+  }
+  return hook[0]
 }
 
 export const useCallback = (
-    cb: Function,
-    deps: DependencyList = []
+  cb: Function,
+  deps: DependencyList = [],
 ): Function => {
-    return useMemo(() => cb, deps)
+  return useMemo(() => cb, deps)
 }
 
 export const useRef = <T>(current: T): RefObject<T> => {
-    return useMemo(() => ({ current }), [])
+  return useMemo(() => ({ current }), [])
 }
 
-export const getHook = (
-    cursor: number
-): [Effect | [], Fiber] => {
-    const current: Fiber = getCurrentFiber()
-    const hooks = current.hooks || (current.hooks = { list: [], effect: [], layout: [] })
-    if (cursor >= hooks.list.length) {
-        hooks.list.push([])
-    }
-    return [hooks.list[cursor], current]
+export const getHook = (cursor: number): [Effect | [], Fiber] => {
+  const current: Fiber = getCurrentFiber()
+  const hooks =
+    current.hooks || (current.hooks = { list: [], effect: [], layout: [] })
+  if (cursor >= hooks.list.length) {
+    hooks.list.push([])
+  }
+  return [hooks.list[cursor], current]
 }
 
 export type ContextType<T> = {
-    ({ value, children }: { value: T, children: Array<RancNode> }): Array<RancNode>;
-    initialValue: T;
+  ({
+    value,
+    children,
+  }: {
+    value: T
+    children: Array<RancNode>
+  }): Array<RancNode>
+  initialValue: T
 }
 
-type SubscriberCb = () => void;
+type SubscriberCb = () => void
 
 export const createContext = <T>(initialValue: T): ContextType<T> => {
-    const contextComponent: ContextType<T> = ({ value, children }) => {
-        const valueRef = useRef(value)
-        const subscribers = useMemo(() => new Set<SubscriberCb>(), EMPTY_ARR)
+  const contextComponent: ContextType<T> = ({ value, children }) => {
+    const valueRef = useRef(value)
+    const subscribers = useMemo(() => new Set<SubscriberCb>(), EMPTY_ARR)
 
-        if (valueRef.current !== value) {
-            valueRef.current = value;
-            subscribers.forEach((subscriber) => subscriber())
-        }
-
-        return children
+    if (valueRef.current !== value) {
+      valueRef.current = value
+      subscribers.forEach((subscriber) => subscriber())
     }
-    contextComponent.initialValue = initialValue;
-    return contextComponent;
+
+    return children
+  }
+  contextComponent.initialValue = initialValue
+  return contextComponent
 }
 
 export const useContext = <T>(contextType: ContextType<T>): Effect | T => {
-    let subscribersSet: Set<Function>
+  let subscribersSet: Set<Function>
 
-    const triggerUpdate = useReducer(undefined, null)[1]
+  const triggerUpdate = useReducer(undefined, null)[1]
 
-    useEffect(() => {
-        return () => subscribersSet && subscribersSet.delete(triggerUpdate)
-    }, EMPTY_ARR);
+  useEffect(() => {
+    return () => subscribersSet && subscribersSet.delete(triggerUpdate)
+  }, EMPTY_ARR)
 
-    const contextFiber = getCurrentFiber().parent
-    // while (contextFiber && contextFiber.type !== contextType) {
-    //     contextFiber = contextFiber.parent
-    // }
-    const hooks = contextFiber?.hooks?.list
-    if (contextFiber && hooks) {
-        const [value, subscribers] = hooks;
+  const contextFiber = getCurrentFiber().parent
+  // while (contextFiber && contextFiber.type !== contextType) {
+  //     contextFiber = contextFiber.parent
+  // }
+  const hooks = contextFiber?.hooks?.list
+  if (contextFiber && hooks) {
+    const [value, subscribers] = hooks
 
-        // subscribersSet = subscribers.add(triggerUpdate)
+    // subscribersSet = subscribers.add(triggerUpdate)
 
-        return value
-    } else {
-        return contextType.initialValue
-    }
+    return value
+  } else {
+    return contextType.initialValue
+  }
 }
 
 export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
-    return !a || a.length !== b.length || b.some((arg, index) => !Object.is(arg, a[index]))
+  return (
+    !a ||
+    a.length !== b.length ||
+    b.some((arg, index) => !Object.is(arg, a[index]))
+  )
 }
 
 /**
@@ -181,7 +190,7 @@ export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
 //         Queue: null,
 //         next: null
 //     }
-//     // 如果是第一次执行这个 hook 
+//     // 如果是第一次执行这个 hook
 //     if (workInProgressHook === null) {
 //         currentFiberHook.memoizedState = workInProgressHook = hook
 //     } else {
@@ -248,7 +257,6 @@ export const isChanged = (a: DependencyList, b: DependencyList): boolean => {
 // // 在 updateEffect 里也是，只是多了依赖数组变化的检测逻辑：
 
 // // pushEffect 里面创建了 effect 对象并把它放到了 fiber.updateQueue 上：
-
 
 // const pushEffect = (tag, create, destroy, deps) => {
 //     const effect = {

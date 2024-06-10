@@ -18,9 +18,9 @@
     "jsx": "preserve",
     "jsxFactory": "jsx",
     "jsxFragmentFactory": "Fragment",
-    "jsxImportSource":"@",
+    "jsxImportSource": "@",
     "paths": {
-      "@/*": ["./*"],
+      "@/*": ["./*"]
     }
   }
 }
