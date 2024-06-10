@@ -7,3 +7,5 @@ config.ts.timestamp*
 .eslintcache
 package-lock.json
 pnpm-lock.yaml
+test-results
+playwright-report

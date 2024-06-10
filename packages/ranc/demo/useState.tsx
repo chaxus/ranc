@@ -9,13 +9,13 @@ function App() {
   }
   return (
     <>
-      {/* <Child /> */}
+      <Child a={state}/>
       <button onClick={() => setState(!state)}>button1</button>
-      {/* <button onClick={output}>console</button>
-    <h1 onClick={() => setState(!state)}>
-      <p>12454432</p>
-    </h1> */}
-      <Child />
+      <button onClick={output}>console</button>
+      <div onClick={() => setState(!state)}>
+        <p>12454432</p>
+      </div>
+      <Child/>
       {state ? <h1>0</h1> : <a>none</a>}
     </>
   )
@@ -26,7 +26,10 @@ const Child = () => {
   const change = () => {
     setState(state + 1)
   }
-  return <button onClick={change}>child:{state}</button>
+  return <>
+    <button onClick={change}>child:{state}</button>
+    {/* <div>{a}</div> */}
+  </>
 }
 
-render(<App />, document.getElementById('app'))
+render(<App />, document.getElementById('use-state'))

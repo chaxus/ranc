@@ -2,6 +2,7 @@ import path, { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
+import { PORT } from './build/config'
 
 const __filename = fileURLToPath(import.meta.url)
 
@@ -32,4 +33,7 @@ export default defineConfig({
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   plugins: [dts()],
+  server: {
+    port: PORT,
+  },
 })

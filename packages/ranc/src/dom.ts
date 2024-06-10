@@ -78,6 +78,7 @@ export const createElement = (
  */
 export const removeElement = (fiber: Fiber): string | void => {
   // const parentNode = fiber.parentNode || getParentNode(fiber)
+  // debugger;
   if (fiber.parentNode) {
     // debugger;
     return (fiber.parentNode.innerHTML = '')

@@ -3,6 +3,7 @@ export {
   Fragment,
   createElement as h,
   createElement as jsx,
+  createElement as _jsx,
   createRef,
 } from '@/src/vdom'
 export { render } from '@/src/reconcile'

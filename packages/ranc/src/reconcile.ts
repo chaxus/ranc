@@ -11,6 +11,7 @@ import type {
   FunctionComponent,
   VNode,
 } from '@/src/vdom'
+import { JSXInternal } from '@/types/jsx'
 
 const CACHE_KEY_NODE: Record<string, Fiber> = {}
 
@@ -31,7 +32,7 @@ let currentFiber: Fiber
 
 let workInProgressFiber: Fiber
 
-export const render = (vnode: VNode, node: HTMLElement | null): void => {
+export const render = (vnode: JSXInternal.Element, node: HTMLElement | null): void => {
   if (vnode && node) {
     resetKey()
     const key = vnode.key || getCurrentKey()
@@ -43,10 +44,12 @@ export const render = (vnode: VNode, node: HTMLElement | null): void => {
       isComp: false,
       key,
       op: TAG.INSERT,
+      props: vnode.props,
     }
     update(workInProgressFiber)
     // 缓存渲染的结果
     CACHE_KEY_NODE[key] = workInProgressFiber
+    console.log('workInProgressFiber',workInProgressFiber);
   }
 }
 

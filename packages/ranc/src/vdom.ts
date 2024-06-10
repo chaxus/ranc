@@ -131,6 +131,7 @@ export function createElement(
   const normalizedProps: Record<string, any> = {}
   let key: string | number | null = null,
     ref: any = null
+  console.log('props--->',props);
   if (props) {
     Object.keys(props).forEach((i) => {
       if (i === 'key') key = props[i]
